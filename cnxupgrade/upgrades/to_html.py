@@ -10,5 +10,11 @@
 __all__ = ('cli_loader',)
 
 
-def cli_loader(parser):
+def cli_command():
+    """The command used by the CLI to invoke the upgrade logic."""
     pass
+
+
+def cli_loader(parser):
+    """Used to load the CLI toggles and switches."""
+    return cli_command

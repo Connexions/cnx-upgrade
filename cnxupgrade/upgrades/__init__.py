@@ -12,6 +12,11 @@ The utilities found in the root of this package provide magical
 functionality for upgrade CLI loading, default upgrade discover,
 and upgrade registration.
 
+Upgrades in this package are required to have a ``cli_loader`` function
+that is given a subparser to add additional parsing options, if necessary,
+and must return a function for the cli to hand arguments to
+(conventionally named, ``cli_command``).
+
 """
 import sys
 
