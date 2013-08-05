@@ -26,14 +26,14 @@ def main(argv=None):
     parser.add_argument('-p', '--psycopg-conn-str',
                         default=DEFAULT_PSYCOPG_CONNECTION_STRING,
                         help="a psycopg2 connection string")
-    upgrades.load_cli(parser)
+    subparsers = parser.add_subparsers(help="upgrade step")
+    upgrades.load_cli(subparsers)
+
+    if len(sys.argv) < 2 or sys.argv[0].startswith('-'):
+        sys.argv.insert(1, upgrades.get_default_cli_command_name())
     args = parser.parse_args(argv)
 
-    try:
-        cmmd = args.cmmd
-    except AttributeError:
-        cmmd = upgrades.get_default()
-
+    cmmd = args.cmmd
     return cmmd(**vars(args))
 
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ###
 # Copyright (c) 2013, Rice University
@@ -14,18 +13,52 @@ functionality for upgrade CLI loading, default upgrade discover,
 and upgrade registration.
 
 """
+import sys
 
 
 __all__ = ('load_cli', 'get_default',)
 
 
-def load_cli(parser):
+# TODO Make upgrade discovery magical. In other words, load the upgrade
+#      modules through scanning rather than reading a constant.
+UPGRADES = (
+    'to_html',
+    )
+# TODO Look this up via setuptools entry-point so that it only needs to be
+#      changed at the distribution level on say release or tag.
+DEFAULT_UPGRADE = 'to_html'
+
+
+def _import_attr_n_module(module_name, attr):
+    """From the given ``module_name`` import
+    the value for ``attr`` (attribute).
+    """
+    __import__(module_name)
+    module = sys.modules[module_name]
+    attr = getattr(module, attr)
+    return attr, module
+
+def _import_loader(module_name):
+    """Given a ``module`` name import the cli loader."""
+    loader, module = _import_attr_n_module(module_name, 'cli_loader')
+    return loader, module.__doc__
+
+
+def load_cli(subparsers):
     """Given a parser, load the upgrades as CLI subcommands"""
-    pass
+    for upgrade_name in UPGRADES:
+        module = 'cnxupgrade.upgrades.{}'.format(upgrade_name)
+        loader, description = _import_loader(module)
+        parser = subparsers.add_parser(upgrade_name,
+                                       help=description)
+        command = loader(parser)
+        if command is None:
+            raise RuntimeError("Failed to load '{}'.".format(upgrade_name))
+        parser.set_defaults(cmmd=command)
 
 
-def get_default():
+def get_default_cli_command_name():
     """Discover and return the default upgrade name (same as the
     subcommand name).
     """
-    return None
+    return DEFAULT_UPGRADE
