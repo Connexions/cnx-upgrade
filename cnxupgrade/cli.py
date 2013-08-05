@@ -23,9 +23,9 @@ DEFAULT_PSYCOPG_CONNECTION_STRING = "dbname=cnxarchive user=cnxarchive " \
 def main(argv=None):
     """Main functions used to interface directly with the user."""
     parser = argparse.ArgumentParser(description=DESCRIPTION)
-    parser.add_argument('-p', '--psycopg-conn-str',
+    parser.add_argument('--db-conn-str',
                         default=DEFAULT_PSYCOPG_CONNECTION_STRING,
-                        help="a psycopg2 connection string")
+                        help="a psycopg2 db connection string")
     subparsers = parser.add_subparsers(help="upgrade step")
     upgrades.load_cli(subparsers)
 
