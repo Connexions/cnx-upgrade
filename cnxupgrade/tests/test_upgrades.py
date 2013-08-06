@@ -28,6 +28,9 @@ except:
                                        _DB_CONNECTION_STRING_CLI_OPT_NAME)
                            )
     DB_CONNECTION_STRING = sys.argv[arg_pos+1]
+TESTING_DATA_DIR = os.path.join(here, 'data')
+TESTING_LEGACY_DATA_SQL_FILE = os.path.join(TESTING_DATA_DIR,
+                                            'legacy-data.sql')
 
 
 class PostgresqlFixture:
@@ -41,13 +44,13 @@ class PostgresqlFixture:
 
     def __init__(self):
         # Configure the database connection.
-        self._connection_string = DB_CONNECTION_STRING
+        self.connection_string = DB_CONNECTION_STRING
         # Drop all existing tables from the database.
         self._drop_all()
 
     def _drop_all(self):
         """Drop all tables in the database."""
-        with psycopg2.connect(self._connection_string) as db_connection:
+        with psycopg2.connect(self.connection_string) as db_connection:
             with db_connection.cursor() as cursor:
                 cursor.execute("DROP SCHEMA public CASCADE")
                 cursor.execute("CREATE SCHEMA public")
@@ -55,7 +58,7 @@ class PostgresqlFixture:
     def setUp(self):
         # Initialize the database schema.
         from cnxarchive.database import initdb
-        settings = {'db-connection-string': self._connection_string}
+        settings = {'db-connection-string': self.connection_string}
         initdb(settings)
 
     def tearDown(self):
@@ -67,6 +70,26 @@ postgresql_fixture = PostgresqlFixture()
 
 class ToHtmlTestCase(unittest.TestCase):
     fixture = postgresql_fixture
+
+    @classmethod
+    def setUpClass(cls):
+        connection_string = cls.fixture.connection_string
+        cls.db_connection = psycopg2.connect(connection_string)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.db_connection.close()
+
+    def setUp(self):
+        self.fixture.setUp()
+        # Load the database with example legacy data.
+        with self.db_connection.cursor() as cursor:
+            with open(TESTING_LEGACY_DATA_SQL_FILE, 'rb') as fp:
+                cursor.execute(fp.read())
+        self.db_connection.commit()
+
+    def tearDown(self):
+        self.fixture.tearDown()
 
     def test_something(self):
         pass
