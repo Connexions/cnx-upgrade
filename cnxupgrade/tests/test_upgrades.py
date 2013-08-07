@@ -73,8 +73,8 @@ class ToHtmlTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        connection_string = cls.fixture.connection_string
-        cls.db_connection = psycopg2.connect(connection_string)
+        cls.connection_string = cls.fixture.connection_string
+        cls.db_connection = psycopg2.connect(cls.connection_string)
 
     @classmethod
     def tearDownClass(cls):
@@ -91,5 +91,26 @@ class ToHtmlTestCase(unittest.TestCase):
     def tearDown(self):
         self.fixture.tearDown()
 
-    def test_something(self):
+    def test_collection_transform(self):
+        # Case to test for a successful tranformation of a collection from
+        #   collxml to html.
+        pass
+
+    def test_collection_transform_w_invalid_data(self):
+        # Case to test for an unsuccessful tranformation of a collection from
+        #   collxml to html.
+        pass
+
+    def test_collection_transform_exists(self):
+        # Case to test for a successful tranformation with an existing
+        #   transform from collxml to html has already been done.
+        pass
+
+    def test_module_transform(self):
+        pass
+
+    def test_module_transform_exists(self):
+        pass
+
+    def test_module_transform_w_invalid_data(self):
         pass
