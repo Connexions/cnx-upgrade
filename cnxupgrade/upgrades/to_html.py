@@ -20,7 +20,7 @@ from psycopg2 import Binary
 __all__ = (
     'cli_loader',
     'transform_collxml_to_html', 'transform_cnxml_to_html',
-    'produce_html_for_collections',
+    'produce_html_for_collections', 'produce_html_for_modules',
     )
 
 
@@ -106,7 +106,55 @@ def produce_html_for_collections(db_connection):
                             'collection.html', 'text/html',))
         yield (collection_ident, None)
 
-    cursor.close()
+    raise StopIteration
+
+
+def produce_html_for_modules(db_connection):
+    """Produce HTML files of existing module documents. This will
+    do the work on all modules in the database.
+
+    Yields a state tuple after each collection is handled.
+    The state tuple contains the id of the module that was transformed
+    and either None when no errors have occured
+    or a message containing information about the issue.
+    """
+    with db_connection.cursor() as cursor:
+        cursor.execute("SELECT module_ident FROM modules "
+                       "  WHERE portal_type = 'Module';")
+        # Note, the "ident" is different from the "id" in our tables.
+        idents = cursor.fetchall()
+
+    for ident in idents:
+        with db_connection.cursor() as cursor:
+            message = None
+            # FIXME There is a better way to join this information, but
+            #       for the sake of testing scope stick with the simple yet
+            #       redundant lookups.
+            cursor.execute("SELECT filename, fileid FROM module_files "
+                           "  WHERE module_ident = %s;", (ident,))
+            file_metadata = dict(cursor.fetchall())
+            file_id = file_metadata['index.cnxml']
+            # Grab the file for transformation.
+            cursor.execute("SELECT file FROM files WHERE fileid = %s;",
+                           (file_id,))
+            cnxml = cursor.fetchone()[0]
+            cnxml = cnxml[:]
+            try:
+                index_html = transform_cnxml_to_html(cnxml)
+            except Exception as exc:
+                # TODO Log the exception in more detail.
+                message = exc.message
+            # Insert the collection.html into the database.
+            payload = (Binary(index_html),)
+            cursor.execute("INSERT INTO files (file) VALUES (%s) "
+                           "RETURNING fileid;", payload)
+            html_file_id = cursor.fetchone()[0]
+            cursor.execute("INSERT INTO module_files "
+                           "  (module_ident, fileid, filename, mimetype) "
+                           "  VALUES (%s, %s, %s, %s);",
+                           (ident, html_file_id, 'index.html', 'text/html',))
+        yield (ident, message)
+
     raise StopIteration
 
 

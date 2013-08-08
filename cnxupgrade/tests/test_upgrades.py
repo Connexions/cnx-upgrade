@@ -148,7 +148,27 @@ class ToHtmlTestCase(unittest.TestCase):
     #     pass
 
     def test_module_transform(self):
-        pass
+        # Case to test for a successful tranformation of a module from
+        #   cnxml to html.
+        from cnxupgrade.upgrades.to_html import produce_html_for_modules
+        with psycopg2.connect(self.connection_string) as db_connection:
+            values = [v for v in produce_html_for_modules(db_connection)]
+            db_connection.commit()
+
+        ident = 25  # m10779
+        with psycopg2.connect(self.connection_string) as db_connection:
+            with db_connection.cursor() as cursor:
+                cursor.execute("SELECT file FROM files "
+                               "  WHERE fileid = "
+                               "    (SELECT fileid FROM module_files "
+                               "       WHERE module_ident = %s "
+                               "         AND filename = 'index.html');",
+                               (ident,))
+                index_html = cursor.fetchone()[0][:]
+        # We only need to test that the file got transformed and placed
+        #   placed in the database, the transform itself should be verified.
+        #   independent of this code.
+        self.assertTrue(index_html.find('<html') >= 0)
 
     def test_module_transform_exists(self):
         pass
