@@ -122,11 +122,11 @@ def produce_html_for_modules(db_connection):
         cursor.execute("SELECT module_ident FROM modules "
                        "  WHERE portal_type = 'Module';")
         # Note, the "ident" is different from the "id" in our tables.
-        idents = cursor.fetchall()
+        idents = [v[0] for v in cursor.fetchall()]
 
     for ident in idents:
+        message = None
         with db_connection.cursor() as cursor:
-            message = None
             # FIXME There is a better way to join this information, but
             #       for the sake of testing scope stick with the simple yet
             #       redundant lookups.
@@ -144,15 +144,17 @@ def produce_html_for_modules(db_connection):
             except Exception as exc:
                 # TODO Log the exception in more detail.
                 message = exc.message
-            # Insert the collection.html into the database.
-            payload = (Binary(index_html),)
-            cursor.execute("INSERT INTO files (file) VALUES (%s) "
-                           "RETURNING fileid;", payload)
-            html_file_id = cursor.fetchone()[0]
-            cursor.execute("INSERT INTO module_files "
-                           "  (module_ident, fileid, filename, mimetype) "
-                           "  VALUES (%s, %s, %s, %s);",
-                           (ident, html_file_id, 'index.html', 'text/html',))
+            else:
+                # Insert the collection.html into the database.
+                payload = (Binary(index_html),)
+                cursor.execute("INSERT INTO files (file) VALUES (%s) "
+                               "RETURNING fileid;", payload)
+                html_file_id = cursor.fetchone()[0]
+                cursor.execute("INSERT INTO module_files "
+                               "  (module_ident, fileid, filename, mimetype) "
+                               "  VALUES (%s, %s, %s, %s);",
+                               (ident, html_file_id,
+                                'index.html', 'text/html',))
         yield (ident, message)
 
     raise StopIteration
