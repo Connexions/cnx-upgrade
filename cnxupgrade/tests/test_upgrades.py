@@ -51,7 +51,6 @@ class TransformTests(unittest.TestCase):
         from cnxupgrade.upgrades.to_html import transform_cnxml_to_html
         index_html = transform_cnxml_to_html(index_xml)
 
-        import ipdb; ipdb.set_trace()
         with open(index_html_filepath, 'r') as fp:
             expected_result = fp.read()
         self.assertMultiLineEqual(index_html, expected_result)
