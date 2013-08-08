@@ -74,19 +74,19 @@ class ToHtmlTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.connection_string = cls.fixture.connection_string
-        cls.db_connection = psycopg2.connect(cls.connection_string)
+        cls._db_connection = psycopg2.connect(cls.connection_string)
 
     @classmethod
     def tearDownClass(cls):
-        cls.db_connection.close()
+        cls._db_connection.close()
 
     def setUp(self):
         self.fixture.setUp()
         # Load the database with example legacy data.
-        with self.db_connection.cursor() as cursor:
+        with self._db_connection.cursor() as cursor:
             with open(TESTING_LEGACY_DATA_SQL_FILE, 'rb') as fp:
                 cursor.execute(fp.read())
-        self.db_connection.commit()
+        self._db_connection.commit()
 
     def tearDown(self):
         self.fixture.tearDown()
