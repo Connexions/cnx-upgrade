@@ -3,7 +3,9 @@ from setuptools import setup, find_packages
 
 
 install_requires = (
+    'lxml',
     'psycopg2',
+    'rhaptos.cnxmlutils',
     )
 tests_require = ('cnx-archive',)
 extras_require = {

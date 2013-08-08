@@ -33,6 +33,30 @@ TESTING_LEGACY_DATA_SQL_FILE = os.path.join(TESTING_DATA_DIR,
                                             'legacy-data.sql')
 
 
+class TransformTests(unittest.TestCase):
+
+    maxDiff = 40000
+
+    def test_cnxml_to_html(self):
+        # Case to test the transformation of cnxml to html.
+        # FIXME This transformation shouldn't even be in this package.
+
+        index_xml_filepath = os.path.join(TESTING_DATA_DIR,
+                                          'm42033-1.3.cnxml')
+        index_html_filepath = os.path.join(TESTING_DATA_DIR,
+                                           'm42033-1.3.html')
+
+        with open(index_xml_filepath, 'r') as fp:
+            index_xml = fp.read()
+        from cnxupgrade.upgrades.to_html import transform_cnxml_to_html
+        index_html = transform_cnxml_to_html(index_xml)
+
+        import ipdb; ipdb.set_trace()
+        with open(index_html_filepath, 'r') as fp:
+            expected_result = fp.read()
+        self.assertMultiLineEqual(index_html, expected_result)
+
+
 class PostgresqlFixture:
     """A testing fixture for a live (same as production) SQL database.
     This will set up the database once for a test case. After each test

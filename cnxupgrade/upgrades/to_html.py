@@ -6,14 +6,54 @@
 # See LICENCE.txt for details.
 # ###
 """Upgrades for munging/transforming Connexions XML formats to HTML."""
+import os
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+
+import rhaptos.cnxmlutils
+from lxml import etree
 from psycopg2 import Binary
 
 
 __all__ = (
     'cli_loader',
-    'transform_collxml_to_html',
+    'transform_collxml_to_html', 'transform_cnxml_to_html',
     'produce_html_for_collections',
     )
+
+
+HTML_TEMPLATE_FOR_CNXML = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+{metadata}
+{content}
+</html>
+"""
+RHAPTOS_CNXMLUTILS_DIR = os.path.dirname(rhaptos.cnxmlutils.__file__)
+XSL_DIRECTORY = os.path.abspath(os.path.join(RHAPTOS_CNXMLUTILS_DIR, 'xsl'))
+
+
+def transform_cnxml_to_html(cnxml):
+    """Transforms raw cnxml content to html."""
+    gen_xsl = lambda f: etree.XSLT(etree.parse(f))
+    cnxml = etree.parse(StringIO(cnxml))
+
+    # Transform the content to html.
+    cnxml_to_html_filepath = os.path.join(XSL_DIRECTORY, 'cnxml-to-html5.xsl')
+    cnxml_to_html = gen_xsl(cnxml_to_html_filepath)
+    content = cnxml_to_html(cnxml)
+
+    # Transform the metadata to html.
+    cnxml_to_html_metadata_filepath = os.path.join(
+            XSL_DIRECTORY,
+            'cnxml-to-html5-metadata.xsl')
+    cnxml_to_html_metadata = gen_xsl(cnxml_to_html_metadata_filepath)
+    metadata = cnxml_to_html_metadata(cnxml)
+
+    html = HTML_TEMPLATE_FOR_CNXML.format(metadata=metadata, content=content)
+    return html
 
 
 def transform_collxml_to_html(collxml):
