@@ -32,7 +32,9 @@ class VersionRecognizer:
 
     def __call__(self):
         """Attempt to recognize the version of a CNXML document.
-        Specifically focused on 0.6+, but we also try to detect 0.5/0.4 by doctype.
+        Specifically focused on 0.6+, but we also try to detect 0.5/0.4
+        by doctype.
+
         Will return strings like "0.5" or "0.6". None if not detectable.
         """
         # expat can parse in chunks;
