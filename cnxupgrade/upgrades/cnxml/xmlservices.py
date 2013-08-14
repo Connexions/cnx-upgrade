@@ -1,36 +1,42 @@
-#!/usr/bin/env python
-"""
-XMLService - wrapper around libxml2 using lxml to provide basic XML services
-
-Author: Brent Hendricks, Ross Reedstrom
-(C) 2005,2012 Rice University
-
-This software is subject to the provisions of the GNU Lesser General
-Public License Version 2.1 (LGPL).  See LICENSE.txt for details.
-"""
-
+# -*- coding: utf-8 -*-
+# ###
+# Copyright (c) 2013, Rice University
+# This software is subject to the provisions of the GNU Affero General
+# Public License version 3 (AGPLv3).
+# See LICENCE.txt for details.
+# ###
 import os
-from lxml import etree
+import logging
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
-import logging
+from lxml import etree
+
+
 xsltlog = logging.getLogger('xslt')
 log = logging.getLogger('CNXMLDocument.XMLService')
+
 
 class XMLError(Exception):
     """XML Operation failed"""
     pass
 
+
 class XMLParserError(XMLError):
     pass
+
 
 class XMLValidityError(XMLError):
     pass
 
+
 class XSLTError(XMLError):
     pass
+
 
 # set Jing JAR path and test to make sure it's good on startup
 JING_DEFAULT = "/opt/jing/bin/jing.jar"
@@ -49,7 +55,6 @@ except NameError:  # JING_TESTED not assigned yet==not yet tested
         raise XMLParserError("Jing JAR file not found at %s; place it there or set environment variable 'JING_JAR' to the path where it is located. See Jing at http://www.thaiopensource.com/relaxng/jing.html" % JINGJARPATH)
 
 # Default options for xml parsing
-
 PARSER_OPTIONS={'load_dtd':True,
                 'resolve_entities':True,
                 'no_network':True,
@@ -69,6 +74,7 @@ def parseString(content):
     except etree.XMLSyntaxError, e:
         raise XMLParserError, e
 
+
 def parseUrl(url):
     """
     Convenience function to parse file with sensible default options. Private: do not use.
@@ -79,7 +85,8 @@ def parseUrl(url):
         return doc
     except etree.XMLSyntaxError, e:
         raise XMLParserError, e
-        
+
+
 def normalize(content):
     """
     Expanding entities and recode in UTF-8. Public.
@@ -96,7 +103,8 @@ _urlmaps["http://cnx.rice.edu/technology/cnxml/schema/rng/0.6/cnxml.rng"] = "/us
 _urlmaps["http://cnx.rice.edu/technology/cnxml/schema/rng/0.7/cnxml.rng"] = "/usr/share/xml/cnxml/schema/rng/0.7/cnxml-jing.rng"
 _urlmaps["http://cnx.rice.edu/technology/cnxml/schema/rng/0.7/cnxml-fragment.rng"] = "/usr/share/xml/cnxml/schema/rng/0.7/cnxml-fragment-jing.rng"
 
-def validate(content, url="http://cnx.rice.edu/technology/cnxml/schema/rng/0.7/cnxml.rng"): 
+
+def validate(content, url="http://cnx.rice.edu/technology/cnxml/schema/rng/0.7/cnxml.rng"):
     """
     Convenience function for validating content. Public.
     'content' is a string of the XML document to be validated.
@@ -113,7 +121,7 @@ def validate(content, url="http://cnx.rice.edu/technology/cnxml/schema/rng/0.7/c
         tmpfile.write(content)
         tmpfile.flush()
         tmploc = tmpfile.name
-        
+
         # A better way might perhaps be to wrap Jing with JCC
         # (http://pypi.python.org/pypi/JCC/) and be able to call directly through Python.
         # We might even be able to hold onto an open validator object that way
@@ -123,8 +131,8 @@ def validate(content, url="http://cnx.rice.edu/technology/cnxml/schema/rng/0.7/c
         result = process.stdout.read()
     finally:
         tmpfile.close()  # deletes file
-        
-    
+
+
     result = result.strip()
     retlist = []
     if result:
@@ -132,7 +140,7 @@ def validate(content, url="http://cnx.rice.edu/technology/cnxml/schema/rng/0.7/c
             parts = l.split(':')
             #file = parts[0]
             line = parts[1]
-            
+
             try:
                 line = str(int(line))
                 #char = parts[2]  # throwing this away at the moment
@@ -141,7 +149,7 @@ def validate(content, url="http://cnx.rice.edu/technology/cnxml/schema/rng/0.7/c
                 # not a line number, so use the whole thing
                 line = 0
                 mesg = l
-                
+
                 # known specific exceptions
                 if mesg == 'fatal: exception "java.io.IOException" thrown: Stream closed.':
                     mesg = "DOCTYPE declaration not allowed."
@@ -158,7 +166,7 @@ def validate(content, url="http://cnx.rice.edu/technology/cnxml/schema/rng/0.7/c
     ## we don't store the RelaxNG parser, because it has a stateful error log (see below), and we can't
     ## guarantee a shared obj wouldn't wrongly share error log entries in multi-thread situation
     #relaxng = etree.RelaxNG(relaxng_doc)
-    
+
     #try:
         #doc = etree.parse(StringIO(content))  # TODO: introspect for doc version to automatically get schema?
     #except etree.XMLSyntaxError, e:
@@ -168,11 +176,12 @@ def validate(content, url="http://cnx.rice.edu/technology/cnxml/schema/rng/0.7/c
         #line = mes[5:sepidx]
         #message = mes[sepidx+2:]
         #return [(line, message)]
-    
+
     #success = relaxng.validate(doc)
     #if not success:
         #return [(x.line, x.message) for x in relaxng.error_log]
     #return []
+
 
 def transform(content, stylesheet, **params):
     """
@@ -242,11 +251,11 @@ def listDocNamespaces(doc):
 
     return namespaces
 
+
 def _normalizeFile(filename):
     f = open(filename)
     content = f.read()
     f.close()
-
     return normalize(content)
 
 
@@ -254,19 +263,16 @@ def _validateFile(filename):
     f = open(filename)
     content = f.read()
     f.close()
-
     return validate(content)
 
 
 def _transformFile(ssFile, contentFile):
-        
     f = open(contentFile)
     content = f.read()
     f.close()
-
     return transform(content, ssFile)
-    
-    
+
+
 if __name__ == "__main__":
     import sys
 
@@ -286,4 +292,3 @@ if __name__ == "__main__":
         sys.exit(-1);
 
     print result
-
