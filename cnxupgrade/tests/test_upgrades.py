@@ -155,7 +155,7 @@ class ToHtmlTestCase(unittest.TestCase):
             values = [v for v in produce_html_for_modules(db_connection)]
             db_connection.commit()
 
-        ident = 25  # m10779
+        ident = 2  # m42955
         with psycopg2.connect(self.connection_string) as db_connection:
             with db_connection.cursor() as cursor:
                 cursor.execute("SELECT file FROM files "
@@ -176,7 +176,7 @@ class ToHtmlTestCase(unittest.TestCase):
     def test_module_transform_w_invalid_data(self):
         # Case to test for an unsuccessful transformation of a module from
         #   cnxml to html.
-        ident = 25  # m10779
+        ident = 2  # m42955
         # Hack a chunk out of the file to ensure it fails.
         with psycopg2.connect(self.connection_string) as db_connection:
             with db_connection.cursor() as cursor:
@@ -188,7 +188,7 @@ class ToHtmlTestCase(unittest.TestCase):
                                (ident,))
                 index_cnxml = cursor.fetchone()[0][:]
                 # Make a mess of things...
-                content = index_cnxml[:300] + index_cnxml[400:]
+                content = index_cnxml[:600] + index_cnxml[700:]
                 payload = (psycopg2.Binary(content), ident,)
                 cursor.execute("UPDATE files SET file = %s "
                                "  WHERE fileid = "
@@ -203,8 +203,8 @@ class ToHtmlTestCase(unittest.TestCase):
             values = [v for v in produce_html_for_modules(db_connection)]
             db_connection.commit()
 
-        ident = 25  # m10779
         message_dict = dict(values)
         self.assertIsNotNone(message_dict[ident])
-        self.assertEqual(message_dict[ident], u'Specification mandate value '
-                         'for attribute edu, line 7, column 4')
+        self.assertEqual(message_dict[ident],
+                         u"Failed to parse QName 'md:tit47:', " \
+                             "line 11, column 12")
