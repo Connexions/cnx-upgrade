@@ -6,6 +6,6 @@ Testing data
     structure that was populated using cnx-populate. This
     data is a SQL dump using::
 
-        pg_dump --data-only -T licenses -T tags \
+        pg_dump --data-only -T licenses -T tags -T trees \
           --inserts --disable-triggers \
           -d $DB_NAME > legacy-data.sql
