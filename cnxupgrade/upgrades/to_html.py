@@ -10,6 +10,7 @@ import os
 from io import BytesIO
 
 import rhaptos.cnxmlutils
+import psycopg2
 from lxml import etree
 from psycopg2 import Binary
 
@@ -256,9 +257,13 @@ def produce_html_for_modules(db_connection):
     raise StopIteration
 
 
-def cli_command():
+def cli_command(**kwargs):
     """The command used by the CLI to invoke the upgrade logic."""
-    pass
+    connection_string = kwargs['db_conn_str']
+    with psycopg2.connect(connection_string) as db_connection:
+        # TODO Ideally, logging would be part of these for loops.
+        [x for x in produce_html_for_collections(db_connection)]
+        [x for x in produce_html_for_modules(db_connection)]
 
 
 def cli_loader(parser):
