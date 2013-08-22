@@ -109,6 +109,103 @@ def produce_html_for_collections(db_connection):
     raise StopIteration
 
 
+SQL_MODULE_ID_TO_MODULE_IDENT = """\
+SELECT module_ident FROM modules
+  WHERE module_id = %s AND version = %s;
+"""
+SQL_RESOURCE_INFO_STATEMENT = """\
+SELECT row_to_json(row) FROM (
+  SELECT fileid as id, md5 as hash FROM files
+    WHERE fileid = (SELECT fileid FROM module_files
+                      WHERE module_ident = %s AND filename = %s )
+) row;
+"""
+SQL_MODULE_BY_ID_N_VERSION_STATEMENT = """\
+SELECT uuid FROM all_modules WHERE moduleid = %s AND version = %s
+"""
+
+
+def _split_ref(ref):
+    """Returns a valid id and version from the '/<id>@<version>' syntax.
+    If version is empty, 'latest' will be assigned.
+    """
+    ref = ref.lstrip('/')
+    split_value = ref.split('@')
+    try:
+        id = split_value[0]
+    except IndexError:
+        raise ValueError("Unable find the module id for '{}'." \
+                             .format(module_ref))
+
+    try:
+        version = split_value[1]
+    except IndexError:
+        # None'ify the version on empty string.
+        version = None
+
+    if id == '':
+        raise ValueError("Missing values")
+
+    return id, version
+
+
+def fix_reference_urls(db_connection, document_ident, html):
+    """Fix the document's internal references to other documents and
+    resources.
+
+    The database connection, passed as ``db_connection`` is used to lookup
+    resources by both filename and the given ``document_ident``, which is
+    the document's 'module_ident' value.
+
+    Returns a modified version of the html document.
+    """
+    xml = etree.parse(html)
+    xml_doc = xml.getroot()
+
+    def get_resource_info(filename):
+        with db_connection.cursor() as cursor:
+            cursor.execute(SQL_RESOURCE_INFO_STATEMENT,
+                           (document_ident, filename,))
+            info = cursor.fetchone()[0]
+        return info
+
+    def get_module_uuid(module, version):
+        with db_connection.cursor() as cursor:
+            cursor.execute(SQL_MODULE_BY_ID_N_VERSION_STATEMENT,
+                           (module, version,))
+            uuid = cursor.fetchone()[0]
+        return uuid
+
+    # Namespace reworking...
+    namespaces = xml_doc.nsmap.copy()
+    namespaces['html'] = namespaces.pop(None)
+
+    # Fix references to resources.
+    for img in xml_doc.xpath('//html:img', namespaces=namespaces):
+        filename = img.get('src')
+        info = get_resource_info(filename)
+        img.set('src', '/resources/{}/{}'.format(info['hash'], filename))
+
+    # Fix references to documents.
+    for anchor in xml_doc.xpath('//html:a', namespaces=namespaces):
+        ref = anchor.get('href')
+        if (ref.startswith('#') or ref.startswith('http')) \
+           and not ref.startswith('/'):
+            continue
+        id, version = _split_ref(ref)
+        # FIXME We need a better way to determine if the link is a
+        #       module or resource reference. Probably some way to
+        #       add an attribute in the xsl.
+        #       The try & except can be removed after we fix this.
+        try:
+            uuid = get_module_uuid(id, version)
+        except TypeError:
+            continue
+        anchor.set('href', '/contents/{}@{}'.format(uuid, version))
+
+    return etree.tostring(xml_doc)
+
+
 def produce_html_for_modules(db_connection):
     """Produce HTML files of existing module documents. This will
     do the work on all modules in the database.

@@ -8,6 +8,7 @@
 import os
 import sys
 import unittest
+from io import BytesIO
 
 import psycopg2
 
@@ -208,3 +209,24 @@ class ToHtmlTestCase(unittest.TestCase):
         self.assertEqual(message_dict[ident],
                          u"Failed to parse QName 'md:tit47:', " \
                              "line 11, column 12")
+
+    def test_module_transform_of_references(self):
+        # Case to test that a document's internal references have
+        #   been rewritten to the cnx-archive's read-only API routes.
+
+        ident = 3
+        from cnxupgrade.upgrades.to_html import (
+            fix_reference_urls, transform_cnxml_to_html)
+        with psycopg2.connect(self.connection_string) as db_connection:
+            content_filepath = os.path.join(TESTING_DATA_DIR,
+                                            'm42119-1.3-modified.cnxml')
+            with open(content_filepath, 'r') as fb:
+                content = transform_cnxml_to_html(fb.read())
+                content = BytesIO(content)
+                content = fix_reference_urls(db_connection, ident, content)
+
+        # Read the content for the reference changes.
+        expected_img_ref = '<img src="/resources/38b5477eb68417a65d7fcb1bc1d6630e/Figure_01_00_01.jpg" data-mime-type="image/jpg" alt="The spiral galaxy Andromeda is shown."/>'
+        self.assertTrue(content.find(expected_img_ref) >= 0)
+        expected_internal_ref = '<a href="/contents/209deb1f-1a46-4369-9e0d-18674cf58a3e@1.7">'
+        self.assertTrue(content.find(expected_internal_ref) >= 0)
