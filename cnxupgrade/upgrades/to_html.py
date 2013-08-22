@@ -234,6 +234,9 @@ def produce_html_for_modules(db_connection):
             cnxml = cnxml[:]
             try:
                 index_html = transform_cnxml_to_html(cnxml)
+                # Fix up content references to cnx-archive specific urls.
+                index_html = fix_reference_urls(db_connection, ident,
+                                                BytesIO(index_html))
             except Exception as exc:
                 # TODO Log the exception in more detail.
                 message = exc.message
