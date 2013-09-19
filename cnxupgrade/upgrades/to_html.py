@@ -18,6 +18,7 @@ from psycopg2 import Binary
 __all__ = (
     'cli_loader',
     'transform_collxml_to_html', 'transform_cnxml_to_html',
+    'produce_html_for_collection', 'produce_html_for_module',
     'produce_html_for_collections', 'produce_html_for_modules',
     )
 
@@ -158,6 +159,32 @@ def transform_collxml_to_html(collxml):
     return html
 
 
+def produce_html_for_collection(db_connection, cursor, collection_ident):
+    # FIXME There is a better way to join this information, but
+    #       for the sake of testing scope stick with the simple yet
+    #       redundant lookups.
+    cursor.execute("SELECT filename, fileid FROM module_files "
+                   "  WHERE module_ident = %s;", (collection_ident,))
+    file_metadata = dict(cursor.fetchall())
+    file_id = file_metadata['collection.xml']
+    # Grab the file for transformation.
+    cursor.execute("SELECT file FROM files WHERE fileid = %s;",
+                   (file_id,))
+    collxml = cursor.fetchone()[0]
+    collxml = collxml[:]
+    collection_html = transform_collxml_to_html(collxml)
+    # Insert the collection.html into the database.
+    payload = (Binary(collection_html),)
+    cursor.execute("INSERT INTO files (file) VALUES (%s) "
+                   "RETURNING fileid;", payload)
+    collection_html_file_id = cursor.fetchone()[0]
+    cursor.execute("INSERT INTO module_files "
+                   "  (module_ident, fileid, filename, mimetype) "
+                   "  VALUES (%s, %s, %s, %s);",
+                   (collection_ident, collection_html_file_id,
+                    'collection.html', 'text/html',))
+
+
 def produce_html_for_collections(db_connection):
     """Produce HTML files of existing collection documents. This will
     do the work on all collections in the database.
@@ -175,32 +202,46 @@ def produce_html_for_collections(db_connection):
 
     for collection_ident in collection_idents:
         with db_connection.cursor() as cursor:
-            # FIXME There is a better way to join this information, but
-            #       for the sake of testing scope stick with the simple yet
-            #       redundant lookups.
-            cursor.execute("SELECT filename, fileid FROM module_files "
-                           "  WHERE module_ident = %s;", (collection_ident,))
-            file_metadata = dict(cursor.fetchall())
-            file_id = file_metadata['collection.xml']
-            # Grab the file for transformation.
-            cursor.execute("SELECT file FROM files WHERE fileid = %s;",
-                           (file_id,))
-            collxml = cursor.fetchone()[0]
-            collxml = collxml[:]
-            collection_html = transform_collxml_to_html(collxml)
-            # Insert the collection.html into the database.
-            payload = (Binary(collection_html),)
-            cursor.execute("INSERT INTO files (file) VALUES (%s) "
-                           "RETURNING fileid;", payload)
-            collection_html_file_id = cursor.fetchone()[0]
-            cursor.execute("INSERT INTO module_files "
-                           "  (module_ident, fileid, filename, mimetype) "
-                           "  VALUES (%s, %s, %s, %s);",
-                           (collection_ident, collection_html_file_id,
-                            'collection.html', 'text/html',))
+            produce_html_for_collection(db_connection, cursor, collection_ident)
         yield (collection_ident, None)
 
     raise StopIteration
+
+
+def produce_html_for_module(db_connection, cursor, ident):
+    message = None
+    # FIXME There is a better way to join this information, but
+    #       for the sake of testing scope stick with the simple yet
+    #       redundant lookups.
+    cursor.execute("SELECT filename, fileid FROM module_files "
+                   "  WHERE module_ident = %s;", (ident,))
+    file_metadata = dict(cursor.fetchall())
+    file_id = file_metadata['index.cnxml']
+    # Grab the file for transformation.
+    cursor.execute("SELECT file FROM files WHERE fileid = %s;",
+                   (file_id,))
+    cnxml = cursor.fetchone()[0]
+    cnxml = cnxml[:]
+    try:
+        index_html = transform_cnxml_to_html(cnxml)
+        # Fix up content references to cnx-archive specific urls.
+        index_html = fix_reference_urls(db_connection, ident,
+                                        BytesIO(index_html))
+    except Exception as exc:
+        # TODO Log the exception in more detail.
+        message = exc.message
+    else:
+        # Insert the collection.html into the database.
+        payload = (Binary(index_html),)
+        cursor.execute("INSERT INTO files (file) VALUES (%s) "
+                       "RETURNING fileid;", payload)
+        html_file_id = cursor.fetchone()[0]
+        cursor.execute("INSERT INTO module_files "
+                       "  (module_ident, fileid, filename, mimetype) "
+                       "  VALUES (%s, %s, %s, %s);",
+                       (ident, html_file_id,
+                        'index.html', 'text/html',))
+    return message
 
 
 def produce_html_for_modules(db_connection):
@@ -219,39 +260,8 @@ def produce_html_for_modules(db_connection):
         idents = [v[0] for v in cursor.fetchall()]
 
     for ident in idents:
-        message = None
         with db_connection.cursor() as cursor:
-            # FIXME There is a better way to join this information, but
-            #       for the sake of testing scope stick with the simple yet
-            #       redundant lookups.
-            cursor.execute("SELECT filename, fileid FROM module_files "
-                           "  WHERE module_ident = %s;", (ident,))
-            file_metadata = dict(cursor.fetchall())
-            file_id = file_metadata['index.cnxml']
-            # Grab the file for transformation.
-            cursor.execute("SELECT file FROM files WHERE fileid = %s;",
-                           (file_id,))
-            cnxml = cursor.fetchone()[0]
-            cnxml = cnxml[:]
-            try:
-                index_html = transform_cnxml_to_html(cnxml)
-                # Fix up content references to cnx-archive specific urls.
-                index_html = fix_reference_urls(db_connection, ident,
-                                                BytesIO(index_html))
-            except Exception as exc:
-                # TODO Log the exception in more detail.
-                message = exc.message
-            else:
-                # Insert the collection.html into the database.
-                payload = (Binary(index_html),)
-                cursor.execute("INSERT INTO files (file) VALUES (%s) "
-                               "RETURNING fileid;", payload)
-                html_file_id = cursor.fetchone()[0]
-                cursor.execute("INSERT INTO module_files "
-                               "  (module_ident, fileid, filename, mimetype) "
-                               "  VALUES (%s, %s, %s, %s);",
-                               (ident, html_file_id,
-                                'index.html', 'text/html',))
+            message = produce_html_for_module(db_connection, cursor, ident)
         yield (ident, message)
 
     raise StopIteration
