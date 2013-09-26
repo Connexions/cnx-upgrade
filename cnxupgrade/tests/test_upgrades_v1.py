@@ -7,6 +7,7 @@
 # ###
 import os
 import unittest
+import uuid
 
 import psycopg2
 from . import *
@@ -34,7 +35,16 @@ class V1TestCase(unittest.TestCase):
                 cursor.execute("DROP SCHEMA public CASCADE")
                 cursor.execute("CREATE SCHEMA public")
 
-    def test_import(self):
-        # XXX tick tick boom
+    def test_uuid_function(self):
+        # Check the uuid_generate_v4 function works.
         from ..upgrades.v1 import do_upgrade
-        self.assertTrue(callable(do_upgrade))
+        with psycopg2.connect(self.connection_string) as db_connection:
+            do_upgrade(db_connection)
+
+        with psycopg2.connect(self.connection_string) as db_connection:
+            with db_connection.cursor() as cursor:
+                cursor.execute("SELECT uuid_generate_v4();")
+                function_value = cursor.fetchone()[0]
+
+        # Test for a value uuid value.
+        self.assertTrue(uuid.UUID(function_value))
