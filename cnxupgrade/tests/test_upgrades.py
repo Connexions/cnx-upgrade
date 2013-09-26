@@ -7,11 +7,11 @@
 # ###
 
 import os
-import sys
 import unittest
 import uuid
 
 import psycopg2
+from . import *
 
 # Set the timezone for the postgresql client so that we get the times in the
 # right timezone (America/Whitehorse is -07 in summer and -08 in winter)
@@ -32,7 +32,6 @@ except:
                                        _DB_CONNECTION_STRING_CLI_OPT_NAME)
                            )
     DB_CONNECTION_STRING = sys.argv[arg_pos+1]
-
 
 class PostgresqlFixture:
     """A testing fixture for a live (same as production) SQL database.
