@@ -27,8 +27,13 @@ def do_upgrade(db_connection):
     """
     with db_connection.cursor() as cursor:
         # Create the UUID generation function.
-        resource_filepath = os.path.join(RESOURCES_DIRECTORY,
-                                         'uuid-function.sql')
-        with open(resource_filepath, 'rb') as resource:
-            cursor.execute(resource.read())
+        uuid_function_filepath = os.path.join(RESOURCES_DIRECTORY,
+                                              'uuid-function.sql')
+        with open(uuid_function_filepath, 'rb') as uuid_function:
+            cursor.execute(uuid_function.read())
+        uuid_alteration_filepath = os.path.join(RESOURCES_DIRECTORY,
+                                                'uuid-alteration.sql')
+        with open(uuid_alteration_filepath, 'rb') as uuid_alteration:
+            cursor.execute(uuid_alteration.read())
+
         db_connection.commit()
