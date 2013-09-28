@@ -11,6 +11,7 @@ import uuid
 
 import psycopg2
 from . import *
+from .populates import populate_database
 
 
 TABLE_DESCRIPTION_STATEMENT = """\
@@ -130,3 +131,26 @@ class V1TestCase(unittest.TestCase):
                 self.assertTrue(target_column['notnull'])
                 self.assertEqual(target_column['default'],
                                  'uuid_generate_v4()')
+
+    def test_uuid_content_migration(self):
+        # Verify that existing content contains new uuid values
+        #   and that these values match between the ``modules``
+        #   and ``latest_modules`` tables.
+
+        # Populate the database with some quality hand-crafted
+        #   locally-made fairly-traded modules.
+        with psycopg2.connect(self.connection_string) as db_connection:
+            populate_database(db_connection, ['v0/modules-1.json'])
+
+        self.call_target()
+
+        with psycopg2.connect(self.connection_string) as db_connection:
+            with db_connection.cursor() as cursor:
+                cursor.execute("SELECT uuid FROM modules "
+                               "  WHERE module_ident = 1;")
+                module_uuid = cursor.fetchone()[0]
+                self.assertTrue(uuid.UUID(module_uuid))
+                cursor.execute("SELECT uuid FROM latest_modules "
+                               "  WHERE module_ident = 1;")
+                latest_module_uuid = cursor.fetchone()[0]
+                self.assertEqual(latest_module_uuid, module_uuid)

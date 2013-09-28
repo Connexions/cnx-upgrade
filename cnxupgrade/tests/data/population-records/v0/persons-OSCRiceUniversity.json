@@ -1,0 +1,11 @@
+{"table": "persons",
+ "primarykeys": ["personid"],
+ "predepends": [],
+ "record": {"personid": "OSCRiceUniversity",
+            "firstname": "Rice",
+            "surname": "University",
+            "fullname": "Rice University",
+            "email": "daniel@openstaxcollege.org"
+           },
+ "postdepends": []
+}

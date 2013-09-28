@@ -1,0 +1,9 @@
+{"table": "persons",
+ "primarykeys": ["personid"],
+ "predepends": [],
+ "record": {"personid": "OpenStaxCollege",
+            "fullname": "OpenStax College",
+            "email": "info@openstaxcollege.org"
+           },
+ "postdepends": []
+}
