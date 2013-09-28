@@ -4,7 +4,7 @@
  "record": {"fileid": 1,
             "file": {"py/object": "cnxupgrade.tests.populates.FilePointer",
                      "rel_root": "population-records/v0",
-                     "filepath": "files/m42955/index.cnxml"
+                     "filepath": "files/m42955/1.7/index.cnxml"
                     }
            },
  "postdepends": [],
