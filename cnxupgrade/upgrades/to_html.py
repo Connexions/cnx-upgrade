@@ -47,6 +47,9 @@ SELECT row_to_json(row) FROM (
 SQL_MODULE_BY_ID_N_VERSION_STATEMENT = """\
 SELECT uuid FROM all_modules WHERE moduleid = %s AND version = %s
 """
+SQL_MODULE_BY_ID_STATEMENT = """\
+SELECT uuid FROM all_modules WHERE moduleid = %s
+"""
 
 
 def _split_ref(ref):
