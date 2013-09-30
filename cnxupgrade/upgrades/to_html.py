@@ -44,8 +44,8 @@ SELECT row_to_json(row) FROM (
                       WHERE module_ident = %s AND filename = %s )
 ) row;
 """
-SQL_MODULE_BY_ID_N_VERSION_STATEMENT = """\
-SELECT uuid FROM all_modules WHERE moduleid = %s AND version = %s
+SQL_MODULE_BY_ID_STATEMENT = """\
+SELECT uuid FROM modules WHERE moduleid = %s
 """
 SQL_MODULE_BY_ID_STATEMENT = """\
 SELECT uuid FROM all_modules WHERE moduleid = %s
@@ -96,11 +96,14 @@ def fix_reference_urls(db_connection, document_ident, html):
             info = cursor.fetchone()[0]
         return info
 
-    def get_module_uuid(module, version):
+    def get_module_uuid(module):
         with db_connection.cursor() as cursor:
-            cursor.execute(SQL_MODULE_BY_ID_N_VERSION_STATEMENT,
-                           (module, version,))
-            uuid = cursor.fetchone()[0]
+            cursor.execute(SQL_MODULE_BY_ID_STATEMENT,
+                           (module,))
+            uuid = None
+            result = cursor.fetchone()
+            if result:
+                uuid=result[0]
         return uuid
 
     # Namespace reworking...
@@ -125,11 +128,15 @@ def fix_reference_urls(db_connection, document_ident, html):
         #       add an attribute in the xsl.
         #       The try & except can be removed after we fix this.
         try:
-            uuid = get_module_uuid(id, version)
+            uuid = get_module_uuid(id)
         except TypeError:
-            continue
-        anchor.set('href', '/contents/{}@{}'.format(uuid, version))
-
+            uuid= None
+        if uuid:
+            anchor.set('href', '/contents/{}@{}'.format(uuid, version))
+        else:
+            info = get_resource_info(ref)
+            anchor.set('href', '/resources/{}/{}'.format(info['hash'], ref))
+            
     return etree.tostring(xml_doc)
 
 
@@ -216,15 +223,20 @@ def produce_html_for_module(db_connection, cursor, ident):
     # FIXME There is a better way to join this information, but
     #       for the sake of testing scope stick with the simple yet
     #       redundant lookups.
-    cursor.execute("SELECT filename, fileid FROM module_files "
-                   "  WHERE module_ident = %s;", (ident,))
-    file_metadata = dict(cursor.fetchall())
-    file_id = file_metadata['index.cnxml']
-    # Grab the file for transformation.
-    cursor.execute("SELECT file FROM files WHERE fileid = %s;",
-                   (file_id,))
-    cnxml = cursor.fetchone()[0]
-    cnxml = cnxml[:]
+    # import pdb;pdb.set_trace()
+    try:
+        cursor.execute("SELECT filename, fileid FROM module_files "
+                       "  WHERE module_ident = %s;", (ident,))
+    except Exception as e:
+        message = e.message
+    else:
+        file_metadata = dict(cursor.fetchall())
+        file_id = file_metadata['index.cnxml']
+        # Grab the file for transformation.
+        cursor.execute("SELECT file FROM files WHERE fileid = %s;",
+                       (file_id,))
+        cnxml = cursor.fetchone()[0]
+        cnxml = cnxml[:]
     try:
         index_html = transform_cnxml_to_html(cnxml)
         # Fix up content references to cnx-archive specific urls.
@@ -247,7 +259,7 @@ def produce_html_for_module(db_connection, cursor, ident):
     return message
 
 
-def produce_html_for_modules(db_connection):
+def produce_html_for_modules(db_connection,id_select_query=None):
     """Produce HTML files of existing module documents. This will
     do the work on all modules in the database.
 
@@ -256,9 +268,10 @@ def produce_html_for_modules(db_connection):
     and either None when no errors have occured
     or a message containing information about the issue.
     """
+    if not id_select_query:
+        id_select_query = "SELECT module_ident FROM modules m where not exists (select 1 from module_files where module_ident=m.module_ident and filename='index.html');"
     with db_connection.cursor() as cursor:
-        cursor.execute("SELECT module_ident FROM modules "
-                       "  WHERE portal_type = 'Module';")
+        cursor.execute(id_select_query)
         # Note, the "ident" is different from the "id" in our tables.
         idents = [v[0] for v in cursor.fetchall()]
 
@@ -273,10 +286,12 @@ def produce_html_for_modules(db_connection):
 def cli_command(**kwargs):
     """The command used by the CLI to invoke the upgrade logic."""
     connection_string = kwargs['db_conn_str']
+    id_select_query = kwargs.get('id_select_query')
     with psycopg2.connect(connection_string) as db_connection:
         # TODO Ideally, logging would be part of these for loops.
-        [x for x in produce_html_for_collections(db_connection)]
-        [x for x in produce_html_for_modules(db_connection)]
+        # [x for x in produce_html_for_collections(db_connection)]
+        for x in produce_html_for_modules(db_connection,id_select_query):
+            print x
 
 
 def cli_loader(parser):
