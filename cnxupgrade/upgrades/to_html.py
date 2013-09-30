@@ -223,7 +223,6 @@ def produce_html_for_module(db_connection, cursor, ident):
     # FIXME There is a better way to join this information, but
     #       for the sake of testing scope stick with the simple yet
     #       redundant lookups.
-    # import pdb;pdb.set_trace()
     try:
         cursor.execute("SELECT filename, fileid FROM module_files "
                        "  WHERE module_ident = %s;", (ident,))
@@ -263,13 +262,13 @@ def produce_html_for_modules(db_connection,id_select_query=None):
     """Produce HTML files of existing module documents. This will
     do the work on all modules in the database.
 
-    Yields a state tuple after each collection is handled.
+    Yields a state tuple after each module is handled.
     The state tuple contains the id of the module that was transformed
     and either None when no errors have occured
     or a message containing information about the issue.
     """
     if not id_select_query:
-        id_select_query = "SELECT module_ident FROM modules m where not exists (select 1 from module_files where module_ident=m.module_ident and filename='index.html');"
+        id_select_query = "SELECT module_ident FROM modules m where portal_type = 'Module' and not exists (select 1 from module_files where module_ident=m.module_ident and filename='index.html');"
     with db_connection.cursor() as cursor:
         cursor.execute(id_select_query)
         # Note, the "ident" is different from the "id" in our tables.
