@@ -26,9 +26,6 @@ def main(argv=None):
     parser.add_argument('--db-conn-str',
                         default=DEFAULT_PSYCOPG_CONNECTION_STRING,
                         help="a psycopg2 db connection string")
-    parser.add_argument('--id-select-query',
-                        default=None,
-                        help="an SQL query that returns module_idents to be converted")
     subparsers = parser.add_subparsers(help="upgrade step")
     upgrades.load_cli(subparsers)
 

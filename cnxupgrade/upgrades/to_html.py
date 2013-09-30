@@ -47,6 +47,14 @@ SELECT row_to_json(row) FROM (
 SQL_MODULE_BY_ID_STATEMENT = """\
 SELECT uuid FROM modules WHERE moduleid = %s
 """
+DEFAULT_ID_SELECT_QUERY = """\
+SELECT module_ident FROM modules AS m
+  WHERE portal_type = 'Module'
+        AND NOT EXISTS (SELECT 1 FROM module_files
+                          WHERE module_ident = m.module_ident
+                                AND filename = 'index.html');
+"""
+
 
 def _split_ref(ref):
     """Returns a valid id and version from the '/<id>@<version>' syntax.
@@ -132,7 +140,7 @@ def fix_reference_urls(db_connection, document_ident, html):
         else:
             info = get_resource_info(ref)
             anchor.set('href', '/resources/{}/{}'.format(info['hash'], ref))
-            
+
     return etree.tostring(xml_doc)
 
 
@@ -254,7 +262,8 @@ def produce_html_for_module(db_connection, cursor, ident):
     return message
 
 
-def produce_html_for_modules(db_connection,id_select_query=None):
+def produce_html_for_modules(db_connection,
+                             id_select_query=DEFAULT_ID_SELECT_QUERY):
     """Produce HTML files of existing module documents. This will
     do the work on all modules in the database.
 
@@ -263,8 +272,6 @@ def produce_html_for_modules(db_connection,id_select_query=None):
     and either None when no errors have occured
     or a message containing information about the issue.
     """
-    if not id_select_query:
-        id_select_query = "SELECT module_ident FROM modules m where portal_type = 'Module' and not exists (select 1 from module_files where module_ident=m.module_ident and filename='index.html');"
     with db_connection.cursor() as cursor:
         cursor.execute(id_select_query)
         # Note, the "ident" is different from the "id" in our tables.
@@ -281,14 +288,17 @@ def produce_html_for_modules(db_connection,id_select_query=None):
 def cli_command(**kwargs):
     """The command used by the CLI to invoke the upgrade logic."""
     connection_string = kwargs['db_conn_str']
-    id_select_query = kwargs.get('id_select_query')
+    id_select_query = kwargs['id_select_query']
     with psycopg2.connect(connection_string) as db_connection:
         # TODO Ideally, logging would be part of these for loops.
         # [x for x in produce_html_for_collections(db_connection)]
-        for x in produce_html_for_modules(db_connection,id_select_query):
+        for x in produce_html_for_modules(db_connection, id_select_query):
             print x
 
 
 def cli_loader(parser):
     """Used to load the CLI toggles and switches."""
+    parser.add_argument('--id-select-query', default=DEFAULT_ID_SELECT_QUERY,
+                        help="an SQL query that returns module_idents to " \
+                             "be converted")
     return cli_command
