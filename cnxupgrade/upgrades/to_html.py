@@ -47,10 +47,6 @@ SELECT row_to_json(row) FROM (
 SQL_MODULE_BY_ID_STATEMENT = """\
 SELECT uuid FROM modules WHERE moduleid = %s
 """
-SQL_MODULE_BY_ID_STATEMENT = """\
-SELECT uuid FROM all_modules WHERE moduleid = %s
-"""
-
 
 def _split_ref(ref):
     """Returns a valid id and version from the '/<id>@<version>' syntax.
