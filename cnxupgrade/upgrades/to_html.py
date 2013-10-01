@@ -118,7 +118,7 @@ def fix_reference_urls(db_connection, document_ident, html):
     for img in xml_doc.xpath('//html:img', namespaces=namespaces):
         filename = img.get('src')
         info = get_resource_info(filename)
-        img.set('src', '/resources/{}/{}'.format(info['hash'], filename))
+        img.set('src', '../resources/{}'.format(info['hash'],))
 
     # Fix references to documents.
     for anchor in xml_doc.xpath('//html:a', namespaces=namespaces):
@@ -139,7 +139,7 @@ def fix_reference_urls(db_connection, document_ident, html):
             anchor.set('href', '/contents/{}@{}'.format(uuid, version))
         else:
             info = get_resource_info(ref)
-            anchor.set('href', '/resources/{}/{}'.format(info['hash'], ref))
+            anchor.set('href', '../resources/{}'.format(info['hash'],))
 
     return etree.tostring(xml_doc)
 
