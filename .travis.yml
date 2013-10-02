@@ -20,7 +20,7 @@ before_install:
   # install psycopg2
   - pip install psycopg2 --use-mirrors
   # install rhaptos.cnxmlutils
-  - git clone -b abstracts-and-metadata https://github.com/Connexions/rhaptos.cnxmlutils.git
+  - git clone https://github.com/Connexions/rhaptos.cnxmlutils.git
   - pip install -e rhaptos.cnxmlutils --use-mirrors
   # install cnx-archive
   - git clone https://github.com/Connexions/cnx-archive.git
