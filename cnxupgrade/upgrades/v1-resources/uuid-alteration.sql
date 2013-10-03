@@ -58,7 +58,41 @@ END;
 ' LANGUAGE 'plpgsql';
 
 -- Update the modules with a default UUID.
-UPDATE modules SET uuid = uuid_generate_v4() WHERE uuid IS NULL;
+ALTER TABLE modules DISABLE TRIGGER ALL;  -- disable update_latest_trigger
+
+CREATE AGGREGATE array_accum (anyelement) (
+  sfunc = array_append,
+  stype = anyarray,
+  initcond = '{}'
+);
+
+-- UPDATE modules SET uuid = uuid_generate_v4() WHERE uuid IS NULL;
+UPDATE modules SET uuid = data.uuid
+FROM (
+  SELECT uuid_generate_v4() as uuid, mid, idents
+  FROM (
+    SELECT moduleid AS mid, array_accum(module_ident) AS idents
+    FROM modules GROUP BY moduleid
+  ) AS grouped_modules
+) AS data
+WHERE
+  moduleid = data.mid
+  AND
+  module_ident = any(data.idents)
+;
+
+DROP AGGREGATE array_accum (anyelement);
+
+ALTER TABLE modules ENABLE TRIGGER ALL;
+
+UPDATE latest_modules SET uuid = mmm.uuid
+FROM (
+  SELECT uuid, module_ident AS mid
+  FROM modules
+) AS mmm
+WHERE
+  module_ident = mmm.mid
+;
 
 -- Set constraints on the column after the data base been updated.
 ALTER TABLE modules ALTER COLUMN "uuid" SET NOT NULL;

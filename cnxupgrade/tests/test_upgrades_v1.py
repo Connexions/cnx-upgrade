@@ -125,12 +125,19 @@ class V1TestCase(unittest.TestCase):
 
         with psycopg2.connect(self.connection_string) as db_connection:
             with db_connection.cursor() as cursor:
+                # Check the 'modules' table
                 table_description = describe_table(cursor, 'modules')
                 target_column = table_description['uuid']
                 self.assertEqual(target_column['type'], 'uuid')
                 self.assertTrue(target_column['notnull'])
                 self.assertEqual(target_column['default'],
                                  'uuid_generate_v4()')
+                # Check the 'latest_modules' table
+                table_description = describe_table(cursor, 'latest_modules')
+                target_column = table_description['uuid']
+                self.assertEqual(target_column['type'], 'uuid')
+                self.assertTrue(target_column['notnull'])
+                self.assertEqual(target_column['default'], None)
 
     def test_uuid_content_migration(self):
         # Verify that existing content contains new uuid values
@@ -140,17 +147,20 @@ class V1TestCase(unittest.TestCase):
         # Populate the database with some quality hand-crafted
         #   locally-made fairly-traded modules.
         with psycopg2.connect(self.connection_string) as db_connection:
-            populate_database(db_connection, ['v0/modules-1.json'])
+            population_records = ['v0/modules-2.json', 'v0/modules-1.json',
+                                  'v0/modules-4.json', 'v0/modules-3.json',
+                                  ]
+            populate_database(db_connection, population_records)
 
         self.call_target()
 
         with psycopg2.connect(self.connection_string) as db_connection:
             with db_connection.cursor() as cursor:
-                cursor.execute("SELECT uuid FROM modules "
-                               "  WHERE module_ident = 1;")
-                module_uuid = cursor.fetchone()[0]
-                self.assertTrue(uuid.UUID(module_uuid))
+                cursor.execute("SELECT module_ident, uuid FROM modules;")
+                module_ids = dict(cursor.fetchall())
+                self.assertEqual(module_ids[1], module_ids[2])
+                self.assertEqual(module_ids[3], module_ids[4])
                 cursor.execute("SELECT uuid FROM latest_modules "
                                "  WHERE module_ident = 1;")
                 latest_module_uuid = cursor.fetchone()[0]
-                self.assertEqual(latest_module_uuid, module_uuid)
+                self.assertEqual(latest_module_uuid, module_ids[1])
