@@ -3,7 +3,7 @@
  "predepends": ["persons-cnxcap.json", "persons-OpenStaxCollege.json",
                 "persons-OSCRiceUniversity.json", "abstracts-3.json"
                ],
- "record": {"module_ident": 3,
+ "record": {"module_ident": 200,
             "portal_type": "Module",
             "moduleid": "m42119",
             "version": "1.3",
@@ -23,5 +23,5 @@
             "licensors": ["OSCRiceUniversity"],
             "parentauthors": null
            },
- "postdepends": ["module_files-3-3.json"]
+ "postdepends": ["module_files-200-3.json"]
 }

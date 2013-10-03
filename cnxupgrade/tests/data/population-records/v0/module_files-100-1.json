@@ -1,8 +1,8 @@
 {"table": "module_files",
  "primarykeys": ["module_ident", "fileid"],
- "predepends": ["modules-4.json", "files-4.json"],
- "record": {"module_ident": 4,
-            "fileid": 4,
+ "predepends": ["modules-100.json", "files-1.json"],
+ "record": {"module_ident": 100,
+            "fileid": 1,
             "filename": "index.cnxml",
             "mimetype": "text/xml"
            },

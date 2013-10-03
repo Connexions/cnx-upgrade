@@ -147,8 +147,8 @@ class V1TestCase(unittest.TestCase):
         # Populate the database with some quality hand-crafted
         #   locally-made fairly-traded modules.
         with psycopg2.connect(self.connection_string) as db_connection:
-            population_records = ['v0/modules-2.json', 'v0/modules-1.json',
-                                  'v0/modules-4.json', 'v0/modules-3.json',
+            population_records = ['v0/modules-99.json', 'v0/modules-100.json',
+                                  'v0/modules-199.json', 'v0/modules-200.json',
                                   ]
             populate_database(db_connection, population_records)
 
@@ -158,9 +158,9 @@ class V1TestCase(unittest.TestCase):
             with db_connection.cursor() as cursor:
                 cursor.execute("SELECT module_ident, uuid FROM modules;")
                 module_ids = dict(cursor.fetchall())
-                self.assertEqual(module_ids[1], module_ids[2])
-                self.assertEqual(module_ids[3], module_ids[4])
+                self.assertEqual(module_ids[99], module_ids[100])
+                self.assertEqual(module_ids[199], module_ids[200])
                 cursor.execute("SELECT uuid FROM latest_modules "
-                               "  WHERE module_ident = 1;")
+                               "  WHERE module_ident = 100;")
                 latest_module_uuid = cursor.fetchone()[0]
-                self.assertEqual(latest_module_uuid, module_ids[1])
+                self.assertEqual(latest_module_uuid, module_ids[100])

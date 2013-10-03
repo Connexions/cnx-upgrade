@@ -1,16 +1,16 @@
 {"table": "modules",
  "primarykeys": ["module_ident"],
  "predepends": ["persons-cnxcap.json", "persons-OpenStaxCollege.json",
-                "persons-OSCRiceUniversity.json", "abstracts-2.json"
+                "persons-OSCRiceUniversity.json", "abstracts-4.json"
                ],
- "record": {"module_ident": 2,
+ "record": {"module_ident": 199,
             "portal_type": "Module",
-            "moduleid": "m42955",
-            "version": "1.6",
-            "name": "Preface to College Physics",
-            "created": "2012/01/31 10:47:02 US/Central",
-            "revised": "2012/06/21 10:20:15.792 GMT-5",
-            "abstractid": 2,
+            "moduleid": "m42119",
+            "version": "1.2",
+            "name": "Introduction to Science and the Realm of Physics, Physical Quantities, and Units",
+            "created": "2011/12/28 11:41:38 US/Central",
+            "revised": "2012/03/30 13:06:25.705 GMT-5",
+            "abstractid": 4,
             "licenseid": 11,
             "doctype": "",
             "submitter": "",
@@ -23,5 +23,5 @@
             "licensors": ["OSCRiceUniversity"],
             "parentauthors": null
            },
- "postdepends": ["module_files-2-2.json"]
+ "postdepends": ["module_files-199-4.json"]
 }
