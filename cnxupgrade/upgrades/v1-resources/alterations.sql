@@ -22,7 +22,7 @@ $$ ;
 ALTER TABLE modules ADD COLUMN "uuid" UUID;
 ALTER TABLE latest_modules ADD COLUMN "uuid" UUID;
 ALTER TABLE modules ADD COLUMN "major_version" INTEGER DEFAULT 1;
-ALTER TABLE modules ADD COLUMN "minor_version" INTEGER DEFAULT 1;
+ALTER TABLE modules ADD COLUMN "minor_version" INTEGER DEFAULT NULL;
 ALTER TABLE latest_modules ADD COLUMN "major_version" INTEGER DEFAULT 1;
 ALTER TABLE latest_modules ADD COLUMN "minor_version" INTEGER DEFAULT 1;
 ALTER TABLE modules ADD COLUMN "google_analytics" TEXT;
@@ -85,13 +85,14 @@ BEGIN
                 uuid, module_ident, portal_type, moduleid, version, name,
   		created, revised, abstractid, stateid, doctype, licenseid,
   		submitter,submitlog, parent, language,
-		authors, maintainers, licensors, parentauthors)
+		authors, maintainers, licensors, parentauthors, google_analytics,
+                major_version, minor_version)
   	VALUES (
          NEW.uuid, NEW.module_ident, NEW.portal_type, NEW.moduleid, NEW.version, NEW.name,
   	 NEW.created, NEW.revised, NEW.abstractid, NEW.stateid, NEW.doctype, NEW.licenseid,
   	 NEW.submitter, NEW.submitlog, NEW.parent, NEW.language,
-	 NEW.authors, NEW.maintainers, NEW.licensors, NEW.parentauthors
-         );
+	 NEW.authors, NEW.maintainers, NEW.licensors, NEW.parentauthors, NEW.google_analytics,
+         NEW.major_version, NEW.minor_version );
   END IF;
 
   IF TG_OP = ''UPDATE'' THEN
@@ -114,7 +115,10 @@ BEGIN
 	authors=NEW.authors,
 	maintainers=NEW.maintainers,
 	licensors=NEW.licensors,
-	parentauthors=NEW.parentauthors
+	parentauthors=NEW.parentauthors,
+	google_analytics=NEW.google_analytics,
+        major_version=NEW.major_version,
+        minor_version=NEW.minor_version
         WHERE module_ident=NEW.module_ident;
   END IF;
 
@@ -122,7 +126,6 @@ RETURN NEW;
 END;
 
 ' LANGUAGE 'plpgsql';
-
 
 
 -- Update the latest_modules with the new uuid values set on the related
