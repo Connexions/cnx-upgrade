@@ -24,16 +24,14 @@ def do_upgrade(db_connection):
     - Alter the ``modules`` and ``latest_modules`` tables to add
       a UUID column. And we make sure the UUID values between the two
       tables match the respective modules.
+    - Alter the ``modules`` and ``latest_modules`` tables to add
+      the major and minor version columns. And we parse the current text
+      version to populate these new values.
     """
     with db_connection.cursor() as cursor:
-        # Create the UUID generation function.
-        uuid_function_filepath = os.path.join(RESOURCES_DIRECTORY,
-                                              'uuid-function.sql')
-        with open(uuid_function_filepath, 'rb') as uuid_function:
-            cursor.execute(uuid_function.read())
-        uuid_alteration_filepath = os.path.join(RESOURCES_DIRECTORY,
-                                                'uuid-alteration.sql')
-        with open(uuid_alteration_filepath, 'rb') as uuid_alteration:
-            cursor.execute(uuid_alteration.read())
-
-        db_connection.commit()
+        # Make sure to look at the comments in the SQL file.
+        alterations_filepath = os.path.join(RESOURCES_DIRECTORY,
+                                            'alterations.sql')
+        with open(alterations_filepath, 'rb') as alterations:
+            cursor.execute(alterations.read())
+    db_connection.commit()

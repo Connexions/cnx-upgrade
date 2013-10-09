@@ -91,7 +91,7 @@ class V1TestCase(unittest.TestCase):
     def setUp(self):
         # Initialize the legacy database schema.
         legacy_schema_filepath = os.path.join(TESTING_DATA_DIRECTORY,
-                                              'legacy-schema.sql')
+                                              'v0-schema.sql')
         with psycopg2.connect(self.connection_string) as db_connection:
             with db_connection.cursor() as cursor:
                 with open(legacy_schema_filepath, 'rb') as schema:
@@ -138,6 +138,30 @@ class V1TestCase(unittest.TestCase):
                 self.assertEqual(target_column['type'], 'uuid')
                 self.assertTrue(target_column['notnull'])
                 self.assertEqual(target_column['default'], None)
+
+    def test_version_alteration(self):
+        # Verify the alterations to the tables major_version
+        #   and minor_version columns have been added.
+        self.call_target()
+
+        with psycopg2.connect(self.connection_string) as db_connection:
+            with db_connection.cursor() as cursor:
+                # Check the 'modules' table
+                table_description = describe_table(cursor, 'modules')
+                target_column = table_description['major_version']
+                self.assertEqual(target_column['type'], 'integer')
+                self.assertEqual(target_column['default'], '1')
+                target_column = table_description['minor_version']
+                self.assertEqual(target_column['type'], 'integer')
+                self.assertEqual(target_column['default'], '1')
+                # Check the 'latest_modules' table
+                table_description = describe_table(cursor, 'latest_modules')
+                target_column = table_description['major_version']
+                self.assertEqual(target_column['type'], 'integer')
+                self.assertEqual(target_column['default'], '1')
+                target_column = table_description['minor_version']
+                self.assertEqual(target_column['type'], 'integer')
+                self.assertEqual(target_column['default'], '1')
 
     def test_uuid_content_migration(self):
         # Verify that existing content contains new uuid values

@@ -5,11 +5,68 @@
 -- See LICENCE.txt for details.
 -- ###
 
--- Add the column to the tables
+
+
+CREATE EXTENSION IF NOT EXISTS plpythonu;
+-- This is named the same as the uuid function in Postgres,
+--   but this one provides better comptibility accross multiple platforms.
+CREATE OR REPLACE FUNCTION uuid_generate_v4 ()
+RETURNS uuid LANGUAGE plpythonu
+AS $$
+import uuid; return uuid.uuid4()
+$$ ;
+
+
+
+-- Add the columns to the tables
 ALTER TABLE modules ADD COLUMN "uuid" UUID;
 ALTER TABLE latest_modules ADD COLUMN "uuid" UUID;
+ALTER TABLE modules ADD COLUMN "major_version" INTEGER DEFAULT 1;
+ALTER TABLE modules ADD COLUMN "minor_version" INTEGER DEFAULT 1;
+ALTER TABLE latest_modules ADD COLUMN "major_version" INTEGER DEFAULT 1;
+ALTER TABLE latest_modules ADD COLUMN "minor_version" INTEGER DEFAULT 1;
 
--- Shoe in a new version of the update_lastest_trigger
+
+
+-- Update the modules with a default UUID.
+ALTER TABLE modules DISABLE TRIGGER ALL;  -- disable update_latest_trigger
+
+CREATE AGGREGATE array_accum (anyelement) (
+  -- Used to build an array of module_idents for creating a joint UUID.
+  sfunc = array_append,
+  stype = anyarray,
+  initcond = '{}'
+);
+
+-- Update all modules to have a UUID value.
+UPDATE modules SET uuid = data.uuid
+FROM (
+  SELECT uuid_generate_v4() as uuid, mid, idents
+  FROM (
+    SELECT moduleid AS mid, array_accum(module_ident) AS idents
+    FROM modules GROUP BY moduleid
+  ) AS grouped_modules
+) AS data
+WHERE
+  moduleid = data.mid
+  AND
+  module_ident = any(data.idents)
+;
+
+DROP AGGREGATE array_accum (anyelement);
+
+ALTER TABLE modules ENABLE TRIGGER ALL;
+
+-- Update all modules to migrate the version value from version to
+--   major_version and minor_version.
+UPDATE modules
+  SET major_version = split_part(version, '.', 1)::integer,
+      minor_version = split_part(version, '.', 2)::integer
+;
+
+
+
+-- Shoe in a new version of the update_latest_trigger
 --   to be UUID column aware.
 CREATE OR REPLACE FUNCTION update_latest() RETURNS trigger AS '
 BEGIN
@@ -57,34 +114,10 @@ END;
 
 ' LANGUAGE 'plpgsql';
 
--- Update the modules with a default UUID.
-ALTER TABLE modules DISABLE TRIGGER ALL;  -- disable update_latest_trigger
 
-CREATE AGGREGATE array_accum (anyelement) (
-  sfunc = array_append,
-  stype = anyarray,
-  initcond = '{}'
-);
 
--- UPDATE modules SET uuid = uuid_generate_v4() WHERE uuid IS NULL;
-UPDATE modules SET uuid = data.uuid
-FROM (
-  SELECT uuid_generate_v4() as uuid, mid, idents
-  FROM (
-    SELECT moduleid AS mid, array_accum(module_ident) AS idents
-    FROM modules GROUP BY moduleid
-  ) AS grouped_modules
-) AS data
-WHERE
-  moduleid = data.mid
-  AND
-  module_ident = any(data.idents)
-;
-
-DROP AGGREGATE array_accum (anyelement);
-
-ALTER TABLE modules ENABLE TRIGGER ALL;
-
+-- Update the latest_modules with the new uuid values set on the related
+--   modules table entries.
 UPDATE latest_modules SET uuid = mmm.uuid
 FROM (
   SELECT uuid, module_ident AS mid
@@ -94,7 +127,7 @@ WHERE
   module_ident = mmm.mid
 ;
 
--- Set constraints on the column after the data base been updated.
+-- Set constraints on the column ONLY after the data base been updated.
 ALTER TABLE modules ALTER COLUMN "uuid" SET NOT NULL;
 ALTER TABLE modules ALTER COLUMN "uuid" SET DEFAULT uuid_generate_v4();
 ALTER TABLE latest_modules ALTER COLUMN "uuid" SET NOT NULL;
