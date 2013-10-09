@@ -53,9 +53,8 @@ WHERE
   module_ident = any(data.idents)
 ;
 
+-- No longer needed.
 DROP AGGREGATE array_accum (anyelement);
-
-ALTER TABLE modules ENABLE TRIGGER ALL;
 
 -- Update all modules to migrate the version value from version to
 --   major_version and minor_version.
@@ -63,6 +62,12 @@ UPDATE modules
   SET major_version = split_part(version, '.', 1)::integer,
       minor_version = split_part(version, '.', 2)::integer
 ;
+UPDATE latest_modules
+  SET major_version = split_part(version, '.', 1)::integer,
+      minor_version = split_part(version, '.', 2)::integer
+;
+
+ALTER TABLE modules ENABLE TRIGGER ALL;
 
 
 

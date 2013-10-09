@@ -188,3 +188,33 @@ class V1TestCase(unittest.TestCase):
                                "  WHERE module_ident = 100;")
                 latest_module_uuid = cursor.fetchone()[0]
                 self.assertEqual(latest_module_uuid, module_ids[100])
+
+    def test_version_migration(self):
+        # Verify that existing content contains new uuid values
+        #   and that these values match between the ``modules``
+        #   and ``latest_modules`` tables.
+
+        # Populate the database with some quality hand-crafted
+        #   locally-made fairly-traded modules.
+        with psycopg2.connect(self.connection_string) as db_connection:
+            population_records = ['v0/modules-99.json', 'v0/modules-100.json',
+                                  'v0/modules-199.json', 'v0/modules-200.json',
+                                  ]
+            populate_database(db_connection, population_records)
+
+        self.call_target()
+
+        with psycopg2.connect(self.connection_string) as db_connection:
+            with db_connection.cursor() as cursor:
+                cursor.execute("SELECT major_version, minor_version "
+                               "  FROM modules "
+                               "  WHERE module_ident = 99;")
+                major_version, minor_version = cursor.fetchone()
+                self.assertEqual(major_version, 1)
+                self.assertEqual(minor_version, 6)
+                cursor.execute("SELECT major_version, minor_version "
+                               "  FROM latest_modules "
+                               "  WHERE module_ident = 100;")
+                major_version, minor_version = cursor.fetchone()
+                self.assertEqual(major_version, 1)
+                self.assertEqual(minor_version, 7)
