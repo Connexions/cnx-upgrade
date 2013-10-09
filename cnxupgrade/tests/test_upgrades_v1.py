@@ -163,6 +163,38 @@ class V1TestCase(unittest.TestCase):
                 self.assertEqual(target_column['type'], 'integer')
                 self.assertEqual(target_column['default'], '1')
 
+    def test_google_analytics_alteration(self):
+        # Verify the google_analytics alteration to the table
+        #   has been added.
+        self.call_target()
+
+        with psycopg2.connect(self.connection_string) as db_connection:
+            with db_connection.cursor() as cursor:
+                # Check the 'modules' table
+                table_description = describe_table(cursor, 'modules')
+                target_column = table_description['google_analytics']
+                self.assertEqual(target_column['type'], 'text')
+                # Check the 'latest_modules' table
+                table_description = describe_table(cursor, 'latest_modules')
+                target_column = table_description['google_analytics']
+                self.assertEqual(target_column['type'], 'text')
+
+    def test_buylink_alteration(self):
+        # Verify the buylink alteration to the table
+        #   has been added.
+        self.call_target()
+
+        with psycopg2.connect(self.connection_string) as db_connection:
+            with db_connection.cursor() as cursor:
+                # Check the 'modules' table
+                table_description = describe_table(cursor, 'modules')
+                target_column = table_description['buylink']
+                self.assertEqual(target_column['type'], 'text')
+                # Check the 'latest_modules' table
+                table_description = describe_table(cursor, 'latest_modules')
+                target_column = table_description['buylink']
+                self.assertEqual(target_column['type'], 'text')
+
     def test_uuid_content_migration(self):
         # Verify that existing content contains new uuid values
         #   and that these values match between the ``modules``
