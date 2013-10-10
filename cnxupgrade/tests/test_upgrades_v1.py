@@ -276,7 +276,7 @@ class V1TestCase(unittest.TestCase):
     def _produce_module_300_tree(self, cursor):
         make_ident_hash = lambda id,v: "{}@{}".format(id,v)
         def ident_to_ident_hash(ident):
-            cursor.execute("SELECT uuid || '@' || minor_version "
+            cursor.execute("SELECT uuid || concat_ws('.', '@'||major_version, minor_version) "
                            "  FROM modules "
                            "  WHERE module_ident = %s;", (ident,))
             return cursor.fetchone()[0]
