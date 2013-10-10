@@ -6,6 +6,7 @@
 # See LICENCE.txt for details.
 # ###
 import os
+import json
 import unittest
 import uuid
 
@@ -271,3 +272,46 @@ class V1TestCase(unittest.TestCase):
                 # Check for the sub-collection.
                 title = "Introduction: The Nature of Science and Physics"
                 self.assertEqual(tree_rows[1], (None, 3, title,))
+
+    def _produce_module_300_tree(self, cursor):
+        make_ident_hash = lambda id,v: "{}@{}".format(id,v)
+        def ident_to_ident_hash(ident):
+            cursor.execute("SELECT uuid || '@' || minor_version "
+                           "  FROM modules "
+                           "  WHERE module_ident = %s;", (ident,))
+            return cursor.fetchone()[0]
+        tree = {
+            "id": ident_to_ident_hash(300),
+            "title": "College Physics",
+            "contents": [
+                {"id": ident_to_ident_hash(100),
+                 "title": "Preface"},
+                {"id":"subcol",
+                 "title": "Introduction: The Nature of Science and Physics",
+                 "contents": [
+                        {"id": ident_to_ident_hash(200),
+                         "title": "Introduction to Science and the Realm of Physics, Physical Quantities, and Units"},
+                        ]},
+                ]}
+        return tree
+
+
+    def test_tree_to_json_functions(self):
+        # Verify that the tree_to_json function works as expected.
+        population_records = ['v0/modules-299.json',
+                              'v0/modules-300.json',
+                              ]
+        with psycopg2.connect(self.connection_string) as db_connection:
+            populate_database(db_connection, population_records)
+
+        self.call_target()
+
+        with psycopg2.connect(self.connection_string) as db_connection:
+            with db_connection.cursor() as cursor:
+                cursor.execute("SELECT tree_to_json(uuid::TEXT, version) "
+                               "  FROM latest_modules "
+                               "  WHERE portal_type = 'Collection';")
+                tree = cursor.fetchone()[0]
+                tree = json.loads(tree)
+                self.assertEqual(tree,
+                                 self._produce_module_300_tree(cursor))
