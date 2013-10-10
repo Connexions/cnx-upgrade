@@ -6,13 +6,13 @@
 # See LICENCE.txt for details.
 # ###
 """Upgrades for munging/transforming Connexions XML formats to HTML."""
+import json
 import os
 from io import BytesIO
 
 import rhaptos.cnxmlutils
 import psycopg2
 from lxml import etree
-from psycopg2 import Binary
 
 
 __all__ = (
@@ -79,6 +79,15 @@ def _split_ref(ref):
 
     return id, version
 
+def get_module_uuid(db_connection, module):
+    with db_connection.cursor() as cursor:
+        cursor.execute(SQL_MODULE_BY_ID_STATEMENT,
+                       (module,))
+        uuid = None
+        result = cursor.fetchone()
+        if result:
+            uuid=result[0]
+    return uuid
 
 def fix_reference_urls(db_connection, document_ident, html):
     """Fix the document's internal references to other documents and
@@ -98,17 +107,9 @@ def fix_reference_urls(db_connection, document_ident, html):
             cursor.execute(SQL_RESOURCE_INFO_STATEMENT,
                            (document_ident, filename,))
             info = cursor.fetchone()[0]
+        if isinstance(info, basestring):
+            info = json.loads(info)
         return info
-
-    def get_module_uuid(module):
-        with db_connection.cursor() as cursor:
-            cursor.execute(SQL_MODULE_BY_ID_STATEMENT,
-                           (module,))
-            uuid = None
-            result = cursor.fetchone()
-            if result:
-                uuid=result[0]
-        return uuid
 
     # Namespace reworking...
     namespaces = xml_doc.nsmap.copy()
@@ -132,7 +133,7 @@ def fix_reference_urls(db_connection, document_ident, html):
         #       add an attribute in the xsl.
         #       The try & except can be removed after we fix this.
         try:
-            uuid = get_module_uuid(id)
+            uuid = get_module_uuid(db_connection, id)
         except TypeError:
             uuid= None
         if uuid:
@@ -188,7 +189,7 @@ def produce_html_for_collection(db_connection, cursor, collection_ident):
     collxml = collxml[:]
     collection_html = transform_collxml_to_html(collxml)
     # Insert the collection.html into the database.
-    payload = (Binary(collection_html),)
+    payload = (memoryview(collection_html),)
     cursor.execute("INSERT INTO files (file) VALUES (%s) "
                    "RETURNING fileid;", payload)
     collection_html_file_id = cursor.fetchone()[0]
@@ -250,7 +251,7 @@ def produce_html_for_module(db_connection, cursor, ident):
         message = exc.message
     else:
         # Insert the collection.html into the database.
-        payload = (Binary(index_html),)
+        payload = (memoryview(index_html),)
         cursor.execute("INSERT INTO files (file) VALUES (%s) "
                        "RETURNING fileid;", payload)
         html_file_id = cursor.fetchone()[0]
