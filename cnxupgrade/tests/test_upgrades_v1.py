@@ -250,3 +250,24 @@ class V1TestCase(unittest.TestCase):
                 major_version, minor_version = cursor.fetchone()
                 self.assertEqual(major_version, 1)
                 self.assertEqual(minor_version, 7)
+
+    def test_trees_addition(self):
+        # Verify that the trees table contains data from latest_modules.
+        population_records = ['v0/modules-299.json',
+                              'v0/modules-300.json',
+                              ]
+        with psycopg2.connect(self.connection_string) as db_connection:
+            populate_database(db_connection, population_records)
+
+        self.call_target()
+
+        with psycopg2.connect(self.connection_string) as db_connection:
+            with db_connection.cursor() as cursor:
+                cursor.execute("SELECT documentid, nodeid, title "
+                               "  FROM trees ORDER BY parent_id;")
+                tree_rows = cursor.fetchall()
+                # Check for the title adjustment.
+                self.assertEqual(tree_rows[0], (100, 2, 'Preface',))
+                # Check for the sub-collection.
+                title = "Introduction: The Nature of Science and Physics"
+                self.assertEqual(tree_rows[1], (None, 3, title,))

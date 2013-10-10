@@ -143,3 +143,214 @@ WHERE
 ALTER TABLE modules ALTER COLUMN "uuid" SET NOT NULL;
 ALTER TABLE modules ALTER COLUMN "uuid" SET DEFAULT uuid_generate_v4();
 ALTER TABLE latest_modules ALTER COLUMN "uuid" SET NOT NULL;
+
+
+
+-- Trees table contains structure of a collection, with pointers into the documents table
+CREATE SEQUENCE nodeid_seq
+  START WITH 1
+  INCREMENT BY 1
+  NO MINVALUE
+  NO MAXVALUE
+  CACHE 1;
+
+CREATE TABLE trees (
+  nodeid INTEGER DEFAULT nextval('nodeid_seq'::regclass) NOT NULL,
+  parent_id INTEGER,
+  documentid INTEGER, -- foreign key documents (documentid),
+  title TEXT, -- override title
+  childorder INTEGER, -- position within parent node
+  latest BOOLEAN, -- is this node supposed to track upstream changes
+  PRIMARY KEY (nodeid),
+  FOREIGN KEY (parent_id) REFERENCES trees (nodeid) ON DELETE CASCADE
+);
+
+-- the unique index insures only one top-level tree per document metadata
+CREATE UNIQUE INDEX trees_unique_doc_idx on trees(documentid) where parent_id is null;
+
+
+
+-- Trigger function to shred collection.xml documents into the trees records.
+CREATE OR REPLACE FUNCTION shred_collxml (doc TEXT) RETURNS VOID
+as $$
+
+from xml import sax
+
+# While the collxml files we process potentially contain many of these
+# namespaces, I take advantage of the fact that almost none of the
+# localnames (tags names) acutally overlap. The one case that does (title)
+# actually works in our favor, since we want to treat it the same anyway.
+
+ns = { "cnx":"http://cnx.rice.edu/cnxml",
+       "cnxorg":"http://cnx.rice.edu/system-info",
+       "md":"http://cnx.rice.edu/mdml",
+       "col":"http://cnx.rice.edu/collxml",
+       "cnxml":"http://cnx.rice.edu/cnxml",
+       "m":"http://www.w3.org/1998/Math/MathML",
+       "q":"http://cnx.rice.edu/qml/1.0",
+       "xhtml":"http://www.w3.org/1999/xhtml",
+       "bib":"http://bibtexml.sf.net/",
+       "cc":"http://web.resource.org/cc/",
+       "rdf":"http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+}
+
+NODE_INS=plpy.prepare("INSERT INTO trees (parent_id,documentid,childorder) SELECT $1, module_ident, $2 from modules where moduleid = $3 and version = $4 returning nodeid", ("int","int","text","text"))
+NODE_NODOC_INS=plpy.prepare("INSERT INTO trees (parent_id,childorder) VALUES ($1, $2) returning nodeid", ("int","int"))
+NODE_TITLE_UPD=plpy.prepare("UPDATE trees set title = $1 from modules where nodeid = $2 and (documentid is null or (documentid = module_ident and name != $1))", ("text","int"))
+
+def _do_insert(pid,cid,oid=0,ver=0):
+    if oid:
+        res = plpy.execute(NODE_INS,(pid,cid,oid,ver))
+        if res.nrows() == 0: # no documentid found
+            plpy.execute(NODE_NODOC_INS,(pid,cid))
+    else:
+        res = plpy.execute(NODE_NODOC_INS,(pid,cid))
+    if res.nrows():
+        nodeid=res[0]["nodeid"]
+    else:
+        nodeid = None
+    return nodeid
+
+def _do_update(title,nid):
+    plpy.execute(NODE_TITLE_UPD, (title,nid))
+
+class ModuleHandler(sax.ContentHandler):
+    def __init__(self):
+        self.parents = [None]
+        self.childorder = 0
+        self.map = {}
+        self.tag = u''
+        self.contentid = u''
+        self.version = u''
+        self.title = u''
+        self.nodeid = 0
+        self.derivedfrom = [None]
+
+    def startElementNS(self, (uri, localname), qname, attrs):
+        self.map[localname] = u''
+        self.tag = localname
+
+        if localname == 'module':
+            self.childorder[-1] += 1
+            nodeid = _do_insert(self.parents[-1],self.childorder[-1],attrs[(None,"document")],attrs[(ns["cnxorg"],"version-at-this-collection-version")])
+            if nodeid:
+                self.nodeid = nodeid
+
+        elif localname == 'subcollection':
+            # TODO insert a metadata record into modules table for subcol.
+            self.childorder[-1] += 1
+            nodeid = _do_insert(self.parents[-1],self.childorder[-1])
+            if nodeid:
+                self.nodeid = nodeid
+                self.parents.append(self.nodeid)
+            self.childorder.append(1)
+
+        elif localname == 'derived-from':
+            self.derivedfrom.append(True)
+
+
+    def characters(self,content):
+        self.map[self.tag] += content
+
+    def endElementNS(self, (uris, localname), qname):
+        if localname == 'content-id' and not self.derivedfrom[-1]:
+            self.contentid = self.map[localname]
+        elif localname == 'version' and not self.derivedfrom[-1]:
+            self.version = self.map[localname]
+        elif localname == 'title' and not self.derivedfrom[-1]:
+            self.title = self.map[localname]
+            if self.parents[-1]: # current node is a subcollection or module
+               _do_update(self.title.encode('utf-8'), self.nodeid)
+
+        elif localname == 'derived-from':
+            self.derivedfrom.pop()
+
+        elif localname == 'metadata':
+            # We know that at end of metadata, we have got the collection info
+            self.childorder = [0]
+            nodeid = _do_insert(None,self.childorder[-1], self.contentid, self.version)
+            if nodeid:
+                self.nodeid = nodeid
+                self.parents.append(self.nodeid)
+            self.childorder.append(1)
+
+        elif localname == 'content':
+            #this occurs at the end of each container class: collection or sub.
+            self.parents.pop()
+            self.childorder.pop()
+
+
+parser = sax.make_parser()
+parser.setFeature(sax.handler.feature_namespaces, 1)
+parser.setContentHandler(ModuleHandler())
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+parser.parse(StringIO(doc))
+$$
+language plpythonu;
+
+create or replace function shred_collxml (fid int)  returns void as
+$$
+select shred_collxml(convert_from(file,'UTF8')) from files where fileid = fid
+$$
+language sql;
+
+create or replace function shred_collxml_trigger () returns trigger as $$
+BEGIN
+PERFORM shred_collxml(NEW.fileid);
+RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+drop trigger if exists shred_collxml on module_files;
+
+CREATE TRIGGER shred_collxml
+  BEFORE INSERT ON module_files
+  FOR EACH row WHEN (NEW.filename = 'collection.xml')
+    EXECUTE PROCEDURE shred_collxml_trigger ()
+;
+
+
+
+-- Populate the trees table from the latest_modules by utilizing
+--   the shred_collxml trigger.
+WITH latest_idents AS
+  (SELECT module_ident AS ident FROM latest_modules)
+SELECT shred_collxml(fileid) FROM module_files
+  WHERE filename = 'collection.xml'
+        AND module_ident IN (SELECT ident FROM latest_idents)
+;
+
+
+
+-- Fuction to make a JSON object from a tree record
+CREATE OR REPLACE FUNCTION tree_to_json(TEXT, TEXT) RETURNS TEXT as $$
+select string_agg(toc,'
+'
+) from (
+WITH RECURSIVE t(node, title, path,value, depth, corder) AS (
+    SELECT nodeid, title, ARRAY[nodeid], documentid, 1, ARRAY[childorder]
+    FROM trees tr, modules m
+    WHERE m.uuid::text = $1 AND
+          concat_ws('.',  m.major_version, m.minor_version) = $2 AND
+      tr.documentid = m.module_ident
+UNION ALL
+    SELECT c1.nodeid, c1.title, t.path || ARRAY[c1.nodeid], c1.documentid, t.depth+1, t.corder || ARRAY[c1.childorder] /* Recursion */
+    FROM trees c1 JOIN t ON (c1.parent_id = t.node)
+    WHERE not nodeid = any (t.path)
+)
+SELECT
+    REPEAT('    ', depth - 1) || '{"id":"' || COALESCE(m.uuid::text,'subcol') ||concat_ws('.', '@'||m.major_version, m.minor_version) ||'",' ||
+      '"title":'||to_json(COALESCE(title,name))||
+      CASE WHEN (depth < lead(depth,1,0) over(w)) THEN ', "contents":['
+           WHEN (depth > lead(depth,1,0) over(w) AND lead(depth,1,0) over(w) = 0 ) THEN '}'||REPEAT(']}',depth - lead(depth,1,0) over(w) - 1)
+           WHEN (depth > lead(depth,1,0) over(w) AND lead(depth,1,0) over(w) != 0 ) THEN '}'||REPEAT(']}',depth - lead(depth,1,0) over(w))||','
+           ELSE '},' END
+      AS "toc"
+FROM t left join  modules m on t.value = m.module_ident
+    WINDOW w as (ORDER BY corder) order by corder ) tree ;
+$$ LANGUAGE SQL;
