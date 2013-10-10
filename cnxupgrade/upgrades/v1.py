@@ -27,6 +27,14 @@ def do_upgrade(db_connection):
     - Alter the ``modules`` and ``latest_modules`` tables to add
       the major and minor version columns. And we parse the current text
       version to populate these new values.
+    - Alter the ``modules`` and ``latest_modules`` tables to add
+      the ``buylink`` and ``google_analytics`` columns.
+    - Adjusts the ``update_latest`` trigger function to include the new
+      columns
+    - Adds the ``trees`` table and related population code.
+    - Adds the ``shred_collxml`` function for shredding collection.xml
+      documents to ``trees`` table records.
+    - Adds the ``tree_to_json`` function.
     """
     with db_connection.cursor() as cursor:
         # Make sure to look at the comments in the SQL file.
