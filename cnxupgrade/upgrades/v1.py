@@ -7,8 +7,9 @@
 # ###
 """Upgrades the schema form version 0 to version 1."""
 import os
+import psycopg2
 
-__all__ = ('do_upgrade')
+__all__ = ('cli_loader', 'do_upgrade',)
 
 here = os.path.abspath(os.path.dirname(__file__))
 RESOURCES_DIRECTORY = os.path.join(here, 'v1-resources')
@@ -43,3 +44,15 @@ def do_upgrade(db_connection):
         with open(alterations_filepath, 'rb') as alterations:
             cursor.execute(alterations.read())
     db_connection.commit()
+
+
+def cli_command(**kwargs):
+    """The command used by the CLI to invoke the upgrade logic."""
+    connection_string = kwargs['db_conn_str']
+    with psycopg2.connect(connection_string) as db_connection:
+        do_upgrade(db_connection)
+
+
+def cli_loader(parser):
+    """Used to load the CLI toggles and switches."""
+    return cli_command

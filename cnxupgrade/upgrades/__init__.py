@@ -30,6 +30,7 @@ __all__ = ('load_cli', 'get_default', 'create_collection_minor_versions')
 #      modules through scanning rather than reading a constant.
 UPGRADES = (
     'to_html',
+    'v1',
     )
 # TODO Look this up via setuptools entry-point so that it only needs to be
 #      changed at the distribution level on say release or tag.
