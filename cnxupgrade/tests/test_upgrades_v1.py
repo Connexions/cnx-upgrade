@@ -162,7 +162,7 @@ class V1TestCase(unittest.TestCase):
                 self.assertEqual(target_column['default'], '1')
                 target_column = table_description['minor_version']
                 self.assertEqual(target_column['type'], 'integer')
-                self.assertEqual(target_column['default'], '1')
+                self.assertEqual(target_column['default'], None)
 
     def test_google_analytics_alteration(self):
         # Verify the google_analytics alteration to the table

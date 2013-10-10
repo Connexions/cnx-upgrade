@@ -24,7 +24,7 @@ ALTER TABLE latest_modules ADD COLUMN "uuid" UUID;
 ALTER TABLE modules ADD COLUMN "major_version" INTEGER DEFAULT 1;
 ALTER TABLE modules ADD COLUMN "minor_version" INTEGER DEFAULT NULL;
 ALTER TABLE latest_modules ADD COLUMN "major_version" INTEGER DEFAULT 1;
-ALTER TABLE latest_modules ADD COLUMN "minor_version" INTEGER DEFAULT 1;
+ALTER TABLE latest_modules ADD COLUMN "minor_version" INTEGER DEFAULT NULL;
 ALTER TABLE modules ADD COLUMN "google_analytics" TEXT;
 ALTER TABLE latest_modules ADD COLUMN "google_analytics" TEXT;
 ALTER TABLE modules ADD COLUMN "buylink" TEXT;
