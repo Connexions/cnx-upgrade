@@ -13,7 +13,6 @@ from io import BytesIO
 import rhaptos.cnxmlutils
 import psycopg2
 from lxml import etree
-from psycopg2 import Binary
 
 
 __all__ = (
@@ -190,7 +189,7 @@ def produce_html_for_collection(db_connection, cursor, collection_ident):
     collxml = collxml[:]
     collection_html = transform_collxml_to_html(collxml)
     # Insert the collection.html into the database.
-    payload = (Binary(collection_html),)
+    payload = (memoryview(collection_html),)
     cursor.execute("INSERT INTO files (file) VALUES (%s) "
                    "RETURNING fileid;", payload)
     collection_html_file_id = cursor.fetchone()[0]
@@ -252,7 +251,7 @@ def produce_html_for_module(db_connection, cursor, ident):
         message = exc.message
     else:
         # Insert the collection.html into the database.
-        payload = (Binary(index_html),)
+        payload = (memoryview(index_html),)
         cursor.execute("INSERT INTO files (file) VALUES (%s) "
                        "RETURNING fileid;", payload)
         html_file_id = cursor.fetchone()[0]
