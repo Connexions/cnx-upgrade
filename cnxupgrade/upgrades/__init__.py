@@ -20,8 +20,10 @@ and must return a function for the cli to hand arguments to
 """
 import sys
 
+from .create_collection_minor_versions import create_collection_minor_versions
 
-__all__ = ('load_cli', 'get_default',)
+
+__all__ = ('load_cli', 'get_default', 'create_collection_minor_versions')
 
 
 # TODO Make upgrade discovery magical. In other words, load the upgrade
