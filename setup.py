@@ -23,6 +23,7 @@ setup(
     entry_points="""\
     [console_scripts]
     cnx-upgrade = cnxupgrade.cli:main
+    cnx-upgrade-buylinks = cnxupgrade.buylinks:main
     """,
     test_suite='cnxupgrade.tests',
     )
