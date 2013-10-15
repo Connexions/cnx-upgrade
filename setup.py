@@ -6,6 +6,12 @@ install_requires = (
     'cnx-archive',
     'psycopg2',
     )
+tests_require = (
+    'jsonpickle',
+    )
+extras_require = {
+    'test': tests_require,
+    }
 description = "An upgrade utility"
 
 
@@ -19,6 +25,8 @@ setup(
     description=description,
     packages=find_packages(),
     install_requires=install_requires,
+    tests_require=tests_require,
+    extras_require=extras_require,
     include_package_data=True,
     entry_points="""\
     [console_scripts]

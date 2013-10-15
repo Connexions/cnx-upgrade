@@ -31,7 +31,7 @@ before_install:
   - git clone https://github.com/Connexions/cnx-archive.git
   - pip install -e cnx-archive --use-mirrors
 install:
-  - pip install -e . --use-mirrors
+  - pip install -e .[test] --use-mirrors
 before_script:
   # Set up postgres roles
   - sudo -u postgres psql -d postgres -c "CREATE USER cnxuser;"
