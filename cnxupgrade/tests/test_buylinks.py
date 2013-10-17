@@ -10,7 +10,10 @@ from io import StringIO
 import unittest
 import urllib2
 
-from test_upgrades import (postgresql_fixture, db_connect, DB_CONNECTION_STRING)
+from .test_upgrades_to_html import (
+    DB_CONNECTION_STRING,
+    postgresql_fixture, db_connect,
+    )
 
 
 class GetBuylinksTestCase(unittest.TestCase):
