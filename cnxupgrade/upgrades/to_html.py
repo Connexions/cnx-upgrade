@@ -14,6 +14,14 @@ from cnxarchive.to_html import *
 
 __all__ = ('cli_loader',)
 
+DEFAULT_ID_SELECT_QUERY = """\
+SELECT module_ident FROM modules AS m
+  WHERE portal_type = 'Module'
+        AND NOT EXISTS (SELECT 1 FROM module_files
+                          WHERE module_ident = m.module_ident
+                                AND filename = 'index.html');
+"""
+
 
 def cli_command(**kwargs):
     """The command used by the CLI to invoke the upgrade logic."""
