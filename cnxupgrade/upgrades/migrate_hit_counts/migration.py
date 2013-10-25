@@ -62,6 +62,8 @@ def do_migration(hits, db_connection):
             cursor.execute("INSERT into document_hits "
                            "VALUES (%s, %s, %s, %s)",
                            payload)
+        # Lastly, update the optimization tables.
+        cursor.execute("SELECT update_hit_ranks();")
     db_connection.commit()
 
 
