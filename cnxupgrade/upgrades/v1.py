@@ -8,11 +8,13 @@
 """Upgrades the schema form version 0 to version 1."""
 import os
 import psycopg2
+from cnxarchive.database import DB_SCHEMA_FILES, _read_sql_file
 
 __all__ = ('cli_loader', 'do_upgrade',)
 
 here = os.path.abspath(os.path.dirname(__file__))
 RESOURCES_DIRECTORY = os.path.join(here, 'v1-resources')
+DB_SCHEMA_PARTS = tuple([os.path.join('schema',dsf[:-4]) for dsf in DB_SCHEMA_FILES if dsf not in ('schema.sql','cnx-user.schema.sql')])
 
 
 def do_upgrade(db_connection):
@@ -32,17 +34,23 @@ def do_upgrade(db_connection):
       the ``buylink`` and ``google_analytics`` columns.
     - Adjusts the ``update_latest`` trigger function to include the new
       columns
+    - puts a users view in place to map legacy persons
+    - from cnxarchive:
     - Adds the ``trees`` table and related population code.
     - Adds the ``shred_collxml`` function for shredding collection.xml
       documents to ``trees`` table records.
     - Adds the ``tree_to_json`` function.
     """
     with db_connection.cursor() as cursor:
-        # Make sure to look at the comments in the SQL file.
+        # Make sure to look at the comments in the SQL file
+        # mutate the legacy tables to match cnxarchive
         alterations_filepath = os.path.join(RESOURCES_DIRECTORY,
                                             'alterations.sql')
         with open(alterations_filepath, 'rb') as alterations:
             cursor.execute(alterations.read())
+        # get the other new parts from cnxarchive
+        for dsp in DB_SCHEMA_PARTS:
+            cursor.execute(_read_sql_file(dsp))
     db_connection.commit()
 
 
