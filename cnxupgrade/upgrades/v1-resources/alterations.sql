@@ -128,9 +128,35 @@ END;
 ALTER TABLE modules ALTER COLUMN "uuid" SET NOT NULL;
 ALTER TABLE modules ALTER COLUMN "uuid" SET DEFAULT uuid_generate_v4();
 
---
--- Name: users; Type: VIEW; Schema: public; Owner: rhaptos
---
+-- store fulltext in the fti table
+
+ALTER TABLE modulefti ADD COLUMN fulltext TEXT;
+
+-- new hits tables
+ 
+CREATE TABLE document_hits (
+  documentid INTEGER NOT NULL,
+  start_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  end_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  hits INTEGER DEFAULT 0,
+  FOREIGN KEY (documentid) REFERENCES modules (module_ident) ON DELETE CASCADE
+);
+
+CREATE TABLE recent_hit_ranks (
+  document UUID NOT NULL PRIMARY KEY,
+  hits INTEGER DEFAULT 0,
+  average FLOAT DEFAULT NULL,
+  rank INTEGER DEFAULT NULL
+);
+
+CREATE TABLE overall_hit_ranks (
+  document UUID NOT NULL PRIMARY KEY,
+  hits INTEGER DEFAULT 0,
+  average FLOAT DEFAULT NULL,
+  rank INTEGER DEFAULT NULL
+);
+
+-- Create a view to map the legacy persons table to the new format
 
 CREATE VIEW users AS
  SELECT persons.personid AS id, 
