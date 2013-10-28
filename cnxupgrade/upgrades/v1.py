@@ -51,6 +51,13 @@ def do_upgrade(db_connection):
         # get the other new parts from cnxarchive
         for dsp in DB_SCHEMA_PARTS:
             cursor.execute(_read_sql_file(dsp))
+        # do data fill-in
+        # FIXME move this to a separate step once we add minor collection
+        # backfill as well. (currently does latest collection collxml shred only
+        data_filepath = os.path.join(RESOURCES_DIRECTORY,
+                                            'data.sql')
+        with open(data_filepath, 'rb') as data:
+            cursor.execute(data.read())
     db_connection.commit()
 
 
