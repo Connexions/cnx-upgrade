@@ -137,7 +137,6 @@ class V1TestCase(unittest.TestCase):
                 table_description = describe_table(cursor, 'latest_modules')
                 target_column = table_description['uuid']
                 self.assertEqual(target_column['type'], 'uuid')
-                self.assertTrue(target_column['notnull'])
                 self.assertEqual(target_column['default'], None)
 
     def test_version_alteration(self):
@@ -159,7 +158,7 @@ class V1TestCase(unittest.TestCase):
                 table_description = describe_table(cursor, 'latest_modules')
                 target_column = table_description['major_version']
                 self.assertEqual(target_column['type'], 'integer')
-                self.assertEqual(target_column['default'], '1')
+                self.assertEqual(target_column['default'], None)
                 target_column = table_description['minor_version']
                 self.assertEqual(target_column['type'], 'integer')
                 self.assertEqual(target_column['default'], None)
@@ -231,7 +230,7 @@ class V1TestCase(unittest.TestCase):
         #   locally-made fairly-traded modules.
         with psycopg2.connect(self.connection_string) as db_connection:
             population_records = ['v0/modules-99.json', 'v0/modules-100.json',
-                                  'v0/modules-199.json', 'v0/modules-200.json',
+                                  'v0/modules-299.json', 'v0/modules-300.json',
                                   ]
             populate_database(db_connection, population_records)
 
@@ -243,14 +242,26 @@ class V1TestCase(unittest.TestCase):
                                "  FROM modules "
                                "  WHERE module_ident = 99;")
                 major_version, minor_version = cursor.fetchone()
-                self.assertEqual(major_version, 1)
-                self.assertEqual(minor_version, 6)
+                self.assertEqual(major_version, 6)
+                self.assertEqual(minor_version, None)
                 cursor.execute("SELECT major_version, minor_version "
                                "  FROM latest_modules "
                                "  WHERE module_ident = 100;")
                 major_version, minor_version = cursor.fetchone()
-                self.assertEqual(major_version, 1)
-                self.assertEqual(minor_version, 7)
+                self.assertEqual(major_version, 7)
+                self.assertEqual(minor_version, None)
+                cursor.execute("SELECT major_version, minor_version "
+                               "  FROM modules "
+                               "  WHERE module_ident = 299;")
+                major_version, minor_version = cursor.fetchone()
+                self.assertEqual(major_version, 6)
+                self.assertEqual(minor_version, 1)
+                cursor.execute("SELECT major_version, minor_version "
+                               "  FROM latest_modules "
+                               "  WHERE module_ident = 300;")
+                major_version, minor_version = cursor.fetchone()
+                self.assertEqual(major_version, 7)
+                self.assertEqual(minor_version, 1)
 
     def test_trees_addition(self):
         # Verify that the trees table contains data from latest_modules.
@@ -308,7 +319,7 @@ class V1TestCase(unittest.TestCase):
 
         with psycopg2.connect(self.connection_string) as db_connection:
             with db_connection.cursor() as cursor:
-                cursor.execute("SELECT tree_to_json(uuid::TEXT, version) "
+                cursor.execute("SELECT tree_to_json(uuid::TEXT, concat_ws('.',major_version,minor_version)) "
                                "  FROM latest_modules "
                                "  WHERE portal_type = 'Collection';")
                 tree = cursor.fetchone()[0]
