@@ -61,11 +61,11 @@ UPDATE latest_modules set uuid=m.uuid from modules m where latest_modules.module
 -- Update all modules to migrate the version value from version to
 --   major_version and minor_version.
 UPDATE modules
-  SET major_version = split_part(version, '.', 1)::integer + split_part(version, '.', 2)::integer - 1 where major_version is null;
-UPDATE modules set minor_version = 1 where portal_type = 'Collection';
+  SET major_version = split_part(version, '.', 1)::integer + split_part(version, '.', 2)::integer - 1;
+UPDATE modules set minor_version = 1 where portal_type = 'Collection' AND minor_version IS NULL;
 UPDATE latest_modules
-  SET major_version = split_part(version, '.', 1)::integer + split_part(version, '.', 2)::integer - 1 where major_version is null;
-UPDATE latest_modules set minor_version = 1 where portal_type = 'Collection';
+  SET major_version = split_part(version, '.', 1)::integer + split_part(version, '.', 2)::integer - 1;
+UPDATE latest_modules set minor_version = 1 where portal_type = 'Collection' AND minor_version IS NULL;
 
 ALTER TABLE modules ENABLE TRIGGER ALL;
 
