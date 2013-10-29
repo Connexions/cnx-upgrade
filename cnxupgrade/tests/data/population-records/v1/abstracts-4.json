@@ -1,0 +1,6 @@
+{"table": "abstracts",
+ "primarykeys": ["abstractid"],
+ "predepends": [],
+ "record": {"abstractid": 4, "abstract": ""},
+ "postdepends": []
+}

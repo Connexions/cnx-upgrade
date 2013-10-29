@@ -1,0 +1,27 @@
+{"table": "modules",
+ "primarykeys": ["module_ident"],
+ "predepends": ["persons-cnxcap.json", "persons-OpenStaxCollege.json",
+                "persons-OSCRiceUniversity.json", "abstracts-1.json"
+               ],
+ "record": {"module_ident": 100,
+            "portal_type": "Module",
+            "moduleid": "m42955",
+            "version": "1.7",
+            "name": "Preface to College Physics",
+            "created": "2012/01/31 10:47:02 -0600",
+            "revised": "2012/07/31 16:22:29 -0500",
+            "abstractid": 1,
+            "licenseid": 11,
+            "doctype": "",
+            "submitter": "",
+            "submitlog": "",
+            "stateid": 1,
+            "parent": null,
+            "language": "en",
+            "authors": ["OpenStaxCollege"],
+            "maintainers": ["cnxcap", "OpenStaxCollege"],
+            "licensors": ["OSCRiceUniversity"],
+            "parentauthors": null
+           },
+ "postdepends": ["module_files-100-1.json"]
+}

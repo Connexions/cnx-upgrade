@@ -1,0 +1,11 @@
+{"table": "persons",
+ "primarykeys": ["personid"],
+ "predepends": [],
+ "record": {"personid": "cnxcap",
+            "firstname": "College",
+            "surname": "Physics",
+            "fullname": "OSC Physics Maintainer",
+            "email": "info@openstaxcollege.org"
+           },
+ "postdepends": []
+}

@@ -1,0 +1,12 @@
+{"table": "files",
+ "primarykeys": ["fileid"],
+ "predepends": [],
+ "record": {"fileid": 3,
+            "file": {"py/object": "cnxupgrade.tests.populates.FilePointer",
+                     "rel_root": "population-records/v0",
+                     "filepath": "files/m42119/1.3/index.cnxml"
+                    }
+           },
+ "postdepends": [],
+ "comments": ""
+}
