@@ -263,6 +263,7 @@ class CollectionMigrationTestCase(unittest.TestCase):
         WHERE uuid = %s AND major_version = %s AND minor_version = %s
         ''', [c1_uuid, 6, 2])
         rev_6_2 = cursor.fetchone()
+        self.assertEqual(rev_6_2[4], '1.6') # legacy version
         # revised
         self.assertEqual(str(rev_6_2[7]), '2013-10-03 12:01:00-07:00')
 
@@ -279,6 +280,7 @@ class CollectionMigrationTestCase(unittest.TestCase):
         WHERE uuid = %s AND major_version = %s AND minor_version = %s
         ''', [c1_uuid, 6, 3])
         rev_6_3 = cursor.fetchone()
+        self.assertEqual(rev_6_3[4], '1.6') # legacy version
         # revised
         self.assertEqual(str(rev_6_3[7]), '2013-10-03 12:02:00-07:00')
 
@@ -295,6 +297,7 @@ class CollectionMigrationTestCase(unittest.TestCase):
         WHERE uuid = %s AND major_version = %s AND minor_version = %s
         ''', [c1_uuid, 6, 4])
         rev_6_4 = cursor.fetchone()
+        self.assertEqual(rev_6_4[4], '1.6') # legacy version
         # revised
         self.assertEqual(str(rev_6_4[7]), '2013-10-03 12:03:00-07:00')
 
