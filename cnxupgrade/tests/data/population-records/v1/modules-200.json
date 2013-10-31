@@ -1,12 +1,15 @@
 {"table": "modules",
  "primarykeys": ["module_ident"],
- "predepends": ["persons-cnxcap.json", "persons-OpenStaxCollege.json",
-                "persons-OSCRiceUniversity.json", "abstracts-3.json"
+ "predepends": ["users-785affea-2b64-4600-9ffb-19cafe626d2a.json", "users-ea26d03f-a51d-45c9-9b46-27ce73293946.json",
+                "users-6ad11ee2-186c-46aa-a9ef-6a53dab6b284.json", "abstracts-3.json"
                ],
  "record": {"module_ident": 200,
+            "uuid": "af3d325a-ffd8-42ab-8e18-1ee31e2bae4a",
             "portal_type": "Module",
             "moduleid": "m42119",
             "version": "1.3",
+            "major_version": 3,
+            "minor_version": 1,
             "name": "Introduction to Science and the Realm of Physics, Physical Quantities, and Units",
             "created": "2011/12/28 11:41:38 US/Central",
             "revised": "2012/07/05 20:00:59.212 GMT-5",
@@ -18,9 +21,9 @@
             "stateid": 1,
             "parent": null,
             "language": "en",
-            "authors": ["OpenStaxCollege"],
-            "maintainers": ["cnxcap", "OpenStaxCollege"],
-            "licensors": ["OSCRiceUniversity"],
+            "authors": ["ea26d03f-a51d-45c9-9b46-27ce73293946"],
+            "maintainers": ["785affea-2b64-4600-9ffb-19cafe626d2a", "ea26d03f-a51d-45c9-9b46-27ce73293946"],
+            "licensors": ["6ad11ee2-186c-46aa-a9ef-6a53dab6b284"],
             "parentauthors": null
            },
  "postdepends": ["module_files-200-3.json"]

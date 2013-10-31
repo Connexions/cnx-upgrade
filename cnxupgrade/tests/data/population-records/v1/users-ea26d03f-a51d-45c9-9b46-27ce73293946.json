@@ -1,7 +1,8 @@
-{"table": "persons",
- "primarykeys": ["personid"],
+{"table": "users",
+ "primarykeys": ["id"],
  "predepends": [],
- "record": {"personid": "OpenStaxCollege",
+ "record": {"_legacy_id": "OpenStaxCollege",
+            "id": "ea26d03f-a51d-45c9-9b46-27ce73293946",
             "fullname": "OpenStax College",
             "email": "info@openstaxcollege.org"
            },
