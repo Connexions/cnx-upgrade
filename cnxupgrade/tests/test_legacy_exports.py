@@ -88,11 +88,11 @@ INSERT INTO modules VALUES (2, 'Collection', 'col11406', 'e79ffde3-7fb4-4af3-9ec
         self.assertEqual(sys.stdout.getvalue(),
                 'Processing collection "col11406"\n'
                 'Downloading from "http://cnx.org/content/col11406/1.7/epub", '
-                'saving as "{}/{}@1.7.epub"\n'
+                'saving as "{}/{}@7.1.epub"\n'
                 'Downloading from "http://cnx.org/content/col11406/1.7/source", '
-                'saving as "{}/{}@1.7.xml"\n'
+                'saving as "{}/{}@7.1.xml"\n'
                 'Downloading from "http://cnx.org/content/col11406/1.7/offline", '
-                'saving as "{}/{}@1.7.zip"\n'
+                'saving as "{}/{}@7.1.zip"\n'
                 .format(self.tmpdir, uuid, self.tmpdir, uuid, self.tmpdir, uuid))
         self.assertEqual(sys.stderr.getvalue(),
                 'Unable to get "http://cnx.org/content/col11406/1.7/pdf" from legacy system\n')
@@ -119,32 +119,32 @@ INSERT INTO modules VALUES (2, 'Collection', 'col11406', 'e79ffde3-7fb4-4af3-9ec
         self.assertEqual(sys.stdout.getvalue(),
                 'Processing collection "col11406"\n'
                 'Downloading from "http://cnx.org/content/col11406/1.7/pdf", '
-                'saving as "{tmpdir}/{uuid}@1.7.pdf"\n'
+                'saving as "{tmpdir}/{uuid}@7.1.pdf"\n'
                 'Downloading from "http://cnx.org/content/col11406/1.7/epub", '
-                'saving as "{tmpdir}/{uuid}@1.7.epub"\n'
+                'saving as "{tmpdir}/{uuid}@7.1.epub"\n'
                 'Downloading from "http://cnx.org/content/col11406/1.7/source", '
-                'saving as "{tmpdir}/{uuid}@1.7.xml"\n'
+                'saving as "{tmpdir}/{uuid}@7.1.xml"\n'
                 'Downloading from "http://cnx.org/content/col11406/1.7/offline", '
-                'saving as "{tmpdir}/{uuid}@1.7.zip"\n'
+                'saving as "{tmpdir}/{uuid}@7.1.zip"\n'
                 'Downloading from "http://cnx.org/content/col11406/1.6/pdf", '
-                'saving as "{tmpdir}/{uuid}@1.6.pdf"\n'
+                'saving as "{tmpdir}/{uuid}@6.1.pdf"\n'
                 'Downloading from "http://cnx.org/content/col11406/1.6/epub", '
-                'saving as "{tmpdir}/{uuid}@1.6.epub"\n'
+                'saving as "{tmpdir}/{uuid}@6.1.epub"\n'
                 'Downloading from "http://cnx.org/content/col11406/1.6/source", '
-                'saving as "{tmpdir}/{uuid}@1.6.xml"\n'
+                'saving as "{tmpdir}/{uuid}@6.1.xml"\n'
                 'Downloading from "http://cnx.org/content/col11406/1.6/offline", '
-                'saving as "{tmpdir}/{uuid}@1.6.zip"\n'
+                'saving as "{tmpdir}/{uuid}@6.1.zip"\n'
                 .format(uuid=uuid, tmpdir=self.tmpdir))
 
         # Check the files downloaded
         files = glob.glob(os.path.join(self.tmpdir, '*'))
         filenames = [os.path.basename(f) for f in files]
         self.assertEqual(sorted(filenames),
-                ['{}@1.6.epub'.format(uuid),
-                 '{}@1.6.pdf'.format(uuid),
-                 '{}@1.6.xml'.format(uuid),
-                 '{}@1.6.zip'.format(uuid),
-                 '{}@1.7.epub'.format(uuid),
-                 '{}@1.7.pdf'.format(uuid),
-                 '{}@1.7.xml'.format(uuid),
-                 '{}@1.7.zip'.format(uuid)])
+                ['{}@6.1.epub'.format(uuid),
+                 '{}@6.1.pdf'.format(uuid),
+                 '{}@6.1.xml'.format(uuid),
+                 '{}@6.1.zip'.format(uuid),
+                 '{}@7.1.epub'.format(uuid),
+                 '{}@7.1.pdf'.format(uuid),
+                 '{}@7.1.xml'.format(uuid),
+                 '{}@7.1.zip'.format(uuid)])
