@@ -29,19 +29,17 @@ FROM modules m
 WHERE m.moduleid = %s
 '''
 
-GET_LATEST_VERSION_BY_ID_SQL = '''
-SELECT m.version, m.revised
-FROM modules m
-WHERE m.moduleid = %s
-ORDER BY m.revised DESC
-LIMIT 1
-'''
 
 GET_VERSIONS_BY_ID_SQL = '''
-SELECT DISTINCT(m.version)
-FROM modules m
-WHERE m.moduleid = %s
+WITH versions AS (SELECT version AS legacy, 
+         CONCAT_WS('.',major_version,minor_version) as version, 
+         revised, 
+         RANK() OVER (PARTITION BY version ORDER BY revised DESC) as rank
+         FROM modules WHERE moduleid = %s) 
+SELECT legacy, version FROM versions WHERE rank=1 ORDER BY revised DESC 
 '''
+GET_LATEST_VERSION_BY_ID_SQL = GET_VERSIONS_BY_ID_SQL  + ' LIMIT 1'
+
 
 def get_export_file(moduleid, version, type, filename):
     """Get the export file from the legacy system and store it as filename
@@ -95,7 +93,7 @@ def get_versions(cursor, collection_id, latest_only):
     else:
         cursor.execute(GET_VERSIONS_BY_ID_SQL, [collection_id])
     for result in cursor.fetchall():
-        yield result[0]
+        yield result
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Get export files from legacy '
@@ -126,13 +124,13 @@ def main(argv=None):
                     # skip if a collection id is not in the db
                     continue
 
-                for version in get_versions(cursor, collection_id,
+                for legacy, version in get_versions(cursor, collection_id,
                                             args.latest_only):
                     for export_type in get_export_types():
                         extension = export_type['ext']
                         type = export_type['type']
                         filename = get_export_filename(uuid, version, extension)
-                        get_export_file(collection_id, version, type,
+                        get_export_file(collection_id, legacy, type,
                                         os.path.join(args.dest, filename))
 
 
