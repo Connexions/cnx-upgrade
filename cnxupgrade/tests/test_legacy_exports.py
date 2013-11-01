@@ -137,9 +137,10 @@ INSERT INTO modules VALUES (2, 'Collection', 'col11406', 'e79ffde3-7fb4-4af3-9ec
                 .format(uuid=uuid, tmpdir=self.tmpdir))
 
         # Check the files downloaded
-        files = glob.glob(os.path.join(self.tmpdir, '*'))
-        filenames = [os.path.basename(f) for f in files]
-        self.assertEqual(sorted(filenames),
+        filenames = glob.glob(os.path.join(self.tmpdir, '*'))
+        filenames = [os.path.basename(f) for f in filenames]
+        filenames.sort()
+        self.assertEqual(filenames,
                 ['{}@6.1.epub'.format(uuid),
                  '{}@6.1.pdf'.format(uuid),
                  '{}@6.1.xml'.format(uuid),
@@ -148,3 +149,61 @@ INSERT INTO modules VALUES (2, 'Collection', 'col11406', 'e79ffde3-7fb4-4af3-9ec
                  '{}@7.1.pdf'.format(uuid),
                  '{}@7.1.xml'.format(uuid),
                  '{}@7.1.zip'.format(uuid)])
+
+        # Check the content of the files downloaded
+        expected_content = ['col11406@1.6/epub',
+                            'col11406@1.6/pdf',
+                            'col11406@1.6/xml',
+                            'col11406@1.6/zip',
+                            'col11406@1.7/epub',
+                            'col11406@1.7/pdf',
+                            'col11406@1.7/xml',
+                            'col11406@1.7/zip']
+        for i, filename in enumerate(filenames):
+            with open(os.path.join(self.tmpdir, filename)) as f:
+                self.assertEqual(f.read(), expected_content[i])
+
+    def test_create_hardlink(self):
+        uuid = 'e79ffde3-7fb4-4af3-9ec8-df648b391597'
+
+        # Pretend we already have col11406-1.7.offline.zip and col11406-1.7.epub
+        # the script should create a hard link instead of downloading the file
+        with open(os.path.join(self.tmpdir, 'col11406-1.7.offline.zip'),
+                  'w') as f:
+            f.write('col11406-1.7.offline.zip')
+        with open(os.path.join(self.tmpdir, 'col11406-1.7.epub'), 'w') as f:
+            f.write('col11406-1.7.epub')
+        # We already have the collection.xml with the new naming system
+        # the script should leave that alone
+        with open(os.path.join(self.tmpdir, '{}@7.1.xml'.format(uuid)),
+                  'w') as f:
+            f.write('col11406-1.7.xml')
+
+        # Mock response for the pdf file
+        self.responses = ['col11406-1.7.pdf']
+
+        self.argv += ['col11406']
+        self.call_target()
+
+        # Make sure we have the right files in tmpdir
+        filenames = glob.glob(os.path.join(self.tmpdir, '*'))
+        filenames = [os.path.basename(f) for f in filenames]
+        filenames.sort()
+        self.assertEqual(filenames,
+                ['col11406-1.7.epub',
+                 'col11406-1.7.offline.zip',
+                 '{}@7.1.epub'.format(uuid),
+                 '{}@7.1.pdf'.format(uuid),
+                 '{}@7.1.xml'.format(uuid),
+                 '{}@7.1.zip'.format(uuid)])
+
+        # Check the content of the files
+        expected_content = ['col11406-1.7.epub',
+                            'col11406-1.7.offline.zip',
+                            'col11406-1.7.epub',
+                            'col11406-1.7.pdf',
+                            'col11406-1.7.xml',
+                            'col11406-1.7.offline.zip']
+        for i, filename in enumerate(filenames):
+            with open(os.path.join(self.tmpdir, filename)) as f:
+                self.assertEqual(f.read(), expected_content[i])
