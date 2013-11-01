@@ -33,6 +33,7 @@ setup(
     [console_scripts]
     cnx-upgrade = cnxupgrade.cli:main
     cnx-upgrade-buylinks = cnxupgrade.buylinks:main
+    cnx-upgrade-legacy-exports = cnxupgrade.legacy_exports:main
     """,
     test_suite='cnxupgrade.tests',
     )
