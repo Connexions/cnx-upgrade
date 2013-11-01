@@ -1,0 +1,9 @@
+{"table": "files",
+ "primarykeys": ["fileid"],
+ "predepends": [],
+ "record": {"fileid": 7,
+            "file": "1234567890-mnbvdrt6789omnbvdrtyuiiuytfsertyvcv"
+           },
+ "postdepends": [],
+ "comments": ""
+}

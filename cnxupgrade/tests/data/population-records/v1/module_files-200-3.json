@@ -1,6 +1,6 @@
 {"table": "module_files",
  "primarykeys": ["module_ident", "fileid"],
- "predepends": ["modules-200.json", "files-3.json"],
+ "predepends": ["modules-200.json", "files-3.json", "module_files-200-7.json"],
  "record": {"module_ident": 200,
             "fileid": 3,
             "filename": "index.cnxml",
