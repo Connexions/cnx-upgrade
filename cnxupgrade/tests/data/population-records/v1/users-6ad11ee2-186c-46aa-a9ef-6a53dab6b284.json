@@ -1,0 +1,12 @@
+{"table": "users",
+ "primarykeys": ["id"],
+ "predepends": [],
+ "record": {"_legacy_id": "OSCRiceUniversity",
+            "id": "6ad11ee2-186c-46aa-a9ef-6a53dab6b284",
+            "firstname": "Rice",
+            "surname": "University",
+            "fullname": "Rice University",
+            "email": "daniel@openstaxcollege.org"
+           },
+ "postdepends": []
+}

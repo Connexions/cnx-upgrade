@@ -1,0 +1,11 @@
+{"table": "module_files",
+ "primarykeys": ["module_ident", "fileid"],
+ "predepends": ["modules-199.json", "files-4.json", "module_files-199-7.json"],
+ "record": {"module_ident": 199,
+            "fileid": 4,
+            "filename": "index.cnxml",
+            "mimetype": "text/xml"
+           },
+ "postdepends": [],
+ "comments": ""
+}

@@ -1,0 +1,12 @@
+{"table": "users",
+ "primarykeys": ["id"],
+ "predepends": [],
+ "record": {"_legacy_id": "cnxcap",
+            "id": "785affea-2b64-4600-9ffb-19cafe626d2a",
+            "firstname": "College",
+            "surname": "Physics",
+            "fullname": "OSC Physics Maintainer",
+            "email": "info@openstaxcollege.org"
+           },
+ "postdepends": []
+}

@@ -23,15 +23,18 @@ before_install:
   - cd plxslt && sudo make && sudo make install && cd ..
   # install rhaptos.cnxmlutils
   - git clone https://github.com/Connexions/rhaptos.cnxmlutils.git
-  - pip install -e rhaptos.cnxmlutils --use-mirrors
+  - cd rhaptos.cnxmlutils && sudo /usr/bin/python setup.py install && cd ..
   # install cnx-query-grammar
   - git clone https://github.com/Connexions/cnx-query-grammar.git
-  - pip install -e cnx-query-grammar --use-mirrors
+  - cd cnx-query-grammar && sudo /usr/bin/python setup.py install && cd ..
+  # install the bug-fixes branch of plpydbapi
+  - git clone -b bug-fixes https://github.com/Connexions/plpydbapi.git
+  - cd plpydbapi && sudo /usr/bin/python setup.py install && cd ..
   # install cnx-archive
   - git clone https://github.com/Connexions/cnx-archive.git
-  - pip install -e cnx-archive --use-mirrors
+  - cd cnx-archive && sudo /usr/bin/python setup.py install && cd ..
 install:
-  - pip install -e .[test] --use-mirrors
+  - sudo /usr/bin/python setup.py install
 before_script:
   # Set up postgres roles
   - sudo -u postgres psql -d postgres -c "CREATE USER cnxuser;"
@@ -39,7 +42,7 @@ before_script:
   # Set up the database
   - sudo -u postgres createdb -O cnxarchive cnxarchive-testing
 script:
-  - python -m unittest discover
+  - sudo -E /usr/bin/python setup.py test
 env:
   - DB_CONNECTION_STRING="dbname=cnxarchive-testing user=cnxarchive password=cnxarchive host=localhost port=5432"
 notifications:

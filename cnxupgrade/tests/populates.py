@@ -213,8 +213,16 @@ class Record:
         return
 
 
+FIX_ID_SEQUENCES = """\
+SELECT pg_catalog.setval('abstracts_abstractid_seq', 1000, true);
+SELECT pg_catalog.setval('modules_module_ident_seq', 1000, true);
+SELECT pg_catalog.setval('files_fileid_seq', 1000, true);
+"""
+
+
 def populate_database(db_connection, record_filepaths=[],
-                      root=POPULATION_RECORDS_DIRECTORY):
+                      root=POPULATION_RECORDS_DIRECTORY,
+                      set_sequences=True):
     """Populate the database using the given database connection
     and a list of records.
     """
@@ -224,6 +232,11 @@ def populate_database(db_connection, record_filepaths=[],
     #   There may be a slight expense for this behavior, but we can handle it.
     #   Besides, this implementation is only for testing purposes.
     with db_connection.cursor() as cursor:
+        # Fix the sequences to prevent collision.
+        # FIXME This should be more generic. prepopulate procedure to pass in.
+        if set_sequences:
+            cursor.execute(FIX_ID_SEQUENCES)
+
         for filepath in record_filepaths:
             full_filepath = os.path.join(root, filepath)
             fileroot = os.path.dirname(full_filepath)

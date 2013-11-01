@@ -1,0 +1,11 @@
+{"table": "module_files",
+ "primarykeys": ["module_ident", "fileid"],
+ "predepends": ["modules-200.json", "files-7.json"],
+ "record": {"module_ident": 200,
+            "fileid": 7,
+            "filename": "Figure_01_00_01.jpg",
+            "mimetype": "image/jpeg"
+           },
+ "postdepends": [],
+ "comments": ""
+}
