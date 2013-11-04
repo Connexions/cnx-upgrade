@@ -126,12 +126,12 @@ class HitCountMigrationTestCase(unittest.TestCase):
         # Test the m3 row for insertion of both past and recent.
         self.assertEqual(len(m3_rows), 2)
         start, stop, hits = m3_rows[0]
-        self.assertEqual(stop, datetime.datetime(*END_DATE) - interval)
+        self.assertEqual(stop.date(), datetime.date(*END_DATE) - interval)
         self.assertEqual(hits, 2)
         # ... and now the recent.
         start, stop, hits = m3_rows[1]
-        self.assertEqual(start, datetime.datetime(*END_DATE) - interval)
-        self.assertEqual(stop, datetime.datetime(*END_DATE))
+        self.assertEqual(start.date(), datetime.date(*END_DATE) - interval)
+        self.assertEqual(stop.date(), datetime.date(*END_DATE))
         self.assertEqual(hits, 3)
 
     def test_migrate_recent_only(self):
@@ -145,8 +145,8 @@ class HitCountMigrationTestCase(unittest.TestCase):
         # Test the m4 row for insertion of only the recent rows.
         self.assertEqual(len(m4_rows), 1)
         start, stop, hits = m4_rows[0]
-        self.assertEqual(start, datetime.datetime(*END_DATE) - interval)
-        self.assertEqual(stop, datetime.datetime(*END_DATE))
+        self.assertEqual(start.date(), datetime.date(*END_DATE) - interval)
+        self.assertEqual(stop.date(), datetime.date(*END_DATE))
         self.assertEqual(hits, 5)
 
     def test_migrate_overlapping_start(self):
@@ -161,8 +161,8 @@ class HitCountMigrationTestCase(unittest.TestCase):
         #   because the module was recently published (date overlap).
         self.assertEqual(len(m5_rows), 1)
         start, stop, hits = m5_rows[0]
-        self.assertEqual(start, datetime.datetime(2013, 10, 10))
-        self.assertEqual(stop, datetime.datetime(*END_DATE))
+        self.assertEqual(start.date(), datetime.date(2013, 10, 10))
+        self.assertEqual(stop.date(), datetime.date(*END_DATE))
         self.assertEqual(hits, 5)
 
 
