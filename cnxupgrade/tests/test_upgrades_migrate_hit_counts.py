@@ -17,7 +17,6 @@ import psycopg2
 from . import DB_CONNECTION_STRING
 
 TZ = 'US/Eastern'
-os.environ['PGTZ'] = TZ
 SQL_FOR_TESTED_DOCUMENTS = """
 ALTER TABLE modules DISABLE TRIGGER ALL;
 INSERT INTO abstracts VALUES (1, '');
@@ -171,6 +170,11 @@ class CLITestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.db_connection_string = DB_CONNECTION_STRING
+        os.environ['PGTZ'] = TZ
+
+    @classmethod
+    def tearDownClass(cls):
+        del os.environ['PGTZ']
 
     def setUp(self):
         # Mock the 'do_migration' function, because that is tested elsewhere.
