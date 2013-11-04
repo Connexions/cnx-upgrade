@@ -21,6 +21,7 @@ from .cli import DEFAULT_PSYCOPG_CONNECTION_STRING
 
 DOWNLOAD_URL = 'http://cnx.org/content/{id}/{version}/{type}'
 
+LEGACY_FILENAME = '{id}-{version}.{ext}'
 FILENAME = '{uuid}@{version}.{ext}'
 
 GET_UUID_BY_ID_SQL = '''
@@ -41,7 +42,7 @@ SELECT legacy, version FROM versions WHERE rank=1 ORDER BY revised DESC
 GET_LATEST_VERSION_BY_ID_SQL = GET_VERSIONS_BY_ID_SQL  + ' LIMIT 1'
 
 
-def get_export_file(moduleid, version, type, filename):
+def download_export_file(moduleid, version, type, filename):
     """Get the export file from the legacy system and store it as filename
     """
     url = DOWNLOAD_URL.format(id=moduleid, version=version, type=type)
@@ -65,14 +66,19 @@ def get_export_filename(uuid, version, extension):
     """
     return FILENAME.format(uuid=uuid, version=version, ext=extension)
 
+def get_legacy_filename(id, version, extension):
+    """Return the filename on the legacy system
+    """
+    return LEGACY_FILENAME.format(id=id, version=version, ext=extension)
+
 def get_export_types():
     """Return a list of export file types available for download
     """
     return [
-            {'ext': 'pdf', 'type': 'pdf'},
-            {'ext': 'epub', 'type': 'epub'},
-            {'ext': 'xml', 'type': 'source'},
-            {'ext': 'zip', 'type': 'offline'},
+            {'ext': 'pdf', 'type': 'pdf', 'legacy_ext': 'pdf'},
+            {'ext': 'epub', 'type': 'epub', 'legacy_ext': 'epub'},
+            {'ext': 'xml', 'type': 'source', 'legacy_ext': 'xml'},
+            {'ext': 'zip', 'type': 'offline', 'legacy_ext': 'offline.zip'},
            ]
 
 def get_uuid(cursor, collection_id):
@@ -95,9 +101,38 @@ def get_versions(cursor, collection_id, latest_only):
     for result in cursor.fetchall():
         yield result
 
+def get_export_file(export_type, collection_id, uuid, legacy_version, version,
+                    dest_dir):
+    """Try to get a download for the collection
+
+    1. If there is a file in dest_dir that cnx-archive can understand,
+       nothing to do
+    2. If there is a file in dest_dir with the legacy export filename,
+       hardlink the file
+    3. Otherwise, try to download the file from the legacy system
+    """
+    extension = export_type['ext']
+    type = export_type['type']
+    legacy_extension = export_type['legacy_ext']
+    legacy_filename = get_legacy_filename(collection_id, legacy_version,
+                                          legacy_extension)
+    filename = get_export_filename(uuid, version, extension)
+
+    if os.path.exists(os.path.join(dest_dir, filename)):
+        return # file already exists in cnx-archive format, nothing to do
+    elif os.path.exists(os.path.join(dest_dir, legacy_filename)):
+        os.link(os.path.join(dest_dir, legacy_filename),
+                os.path.join(dest_dir, filename)) # create hard link
+    else:
+        # try to download the file from legacy
+        download_export_file(collection_id, legacy_version, type,
+                             os.path.join(dest_dir, filename))
+
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='Get export files from legacy '
-            'systems and rename them to something that cnx-archive understands')
+    parser = argparse.ArgumentParser(description='Download export files from '
+            'legacy system and rename them to something that cnx-archive '
+            'understands. If the file is already in DESTINATION_DIRECTORY then '
+            'just hardlink them')
     parser.add_argument('--db-conn-str',
                         default=DEFAULT_PSYCOPG_CONNECTION_STRING,
                         help='a psycopg2 db connection string')
@@ -127,11 +162,8 @@ def main(argv=None):
                 for legacy, version in get_versions(cursor, collection_id,
                                             args.latest_only):
                     for export_type in get_export_types():
-                        extension = export_type['ext']
-                        type = export_type['type']
-                        filename = get_export_filename(uuid, version, extension)
-                        get_export_file(collection_id, legacy, type,
-                                        os.path.join(args.dest, filename))
+                        get_export_file(export_type, collection_id, uuid,
+                                legacy, version, args.dest)
 
 
 if __name__ == '__main__':
