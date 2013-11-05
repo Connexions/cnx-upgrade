@@ -94,6 +94,17 @@ class HitCountMigrationTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.db_connection_string = DB_CONNECTION_STRING
+        # Enforce a blank slate.
+        with psycopg2.connect(cls.db_connection_string) as db_connection:
+            with db_connection.cursor() as cursor:
+                cursor.execute("DROP SCHEMA public CASCADE; "
+                               "CREATE SCHEMA public;")
+        os.environ['PGTZ'] = TZ
+
+    @classmethod
+    def tearDownClass(cls):
+        del os.environ['PGTZ']
+
 
     def setUp(self):
         from cnxarchive.database import initdb, CONNECTION_SETTINGS_KEY
@@ -169,12 +180,9 @@ class CLITestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        # This test case doesn't actually read or write to the database,
+        #   it only makes a connection, which means the db needs to exist.
         cls.db_connection_string = DB_CONNECTION_STRING
-        os.environ['PGTZ'] = TZ
-
-    @classmethod
-    def tearDownClass(cls):
-        del os.environ['PGTZ']
 
     def setUp(self):
         # Mock the 'do_migration' function, because that is tested elsewhere.
