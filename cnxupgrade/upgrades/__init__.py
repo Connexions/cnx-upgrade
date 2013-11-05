@@ -31,6 +31,7 @@ __all__ = ('load_cli', 'get_default', 'create_collection_minor_versions')
 UPGRADES = (
     'to_html',
     'v1',
+    'migrate_hit_counts',
     )
 # TODO Look this up via setuptools entry-point so that it only needs to be
 #      changed at the distribution level on say release or tag.

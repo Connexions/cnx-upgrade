@@ -15,7 +15,6 @@ from . import *
 
 # Set the timezone for the postgresql client so that we get the times in the
 # right timezone (America/Whitehorse is -07 in summer and -08 in winter)
-os.environ['PGTZ'] = 'America/Whitehorse'
 
 _DB_CONNECTION_STRING_ENV_VAR_NAME = 'DB_CONNECTION_STRING'
 _DB_CONNECTION_STRING_CLI_OPT_NAME = '--db-conn-str'
@@ -90,6 +89,14 @@ class CollectionMigrationTestCase(unittest.TestCase):
     already in the database
     """
     fixture = postgresql_fixture
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ['PGTZ'] = 'America/Whitehorse'
+
+    @classmethod
+    def tearDownClass(cls):
+        del os.environ['PGTZ']
 
     @db_connect
     def setUp(self, cursor):

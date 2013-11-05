@@ -5,6 +5,7 @@ from setuptools import setup, find_packages
 install_requires = (
     'cnx-archive',
     'psycopg2',
+    'pytz',
     )
 tests_require = (
     'jsonpickle',
