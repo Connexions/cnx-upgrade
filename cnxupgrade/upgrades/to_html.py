@@ -6,7 +6,7 @@
 # See LICENCE.txt for details.
 # ###
 """Upgrades for munging/transforming Connexions XML formats to HTML."""
-
+import logging
 import psycopg2
 
 from cnxarchive.to_html import *
@@ -22,6 +22,12 @@ SELECT module_ident FROM modules AS m
                                 AND filename = 'index.html');
 """
 
+logger = logging.getLogger('to_html')
+logger.setLevel(logging.DEBUG)
+console_log_handler = logging.StreamHandler()
+console_log_handler.setLevel(logging.DEBUG)
+logger.addHandler(console_log_handler)
+
 
 def cli_command(**kwargs):
     """The command used by the CLI to invoke the upgrade logic."""
@@ -30,8 +36,8 @@ def cli_command(**kwargs):
     with psycopg2.connect(connection_string) as db_connection:
         # TODO Ideally, logging would be part of these for loops.
         # [x for x in produce_html_for_collections(db_connection)]
-        for x in produce_html_for_modules(db_connection, id_select_query):
-            print x
+        for (mid, msg) in produce_html_for_modules(db_connection, id_select_query):
+            log.debug("module_ident = {}, message = '{}'".format(mid, message))
 
 
 def cli_loader(parser):
