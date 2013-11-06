@@ -6,6 +6,8 @@
 # See LICENCE.txt for details.
 # ###
 """Upgrades for munging/transforming Connexions XML formats to HTML."""
+import csv
+import argparse
 import logging
 import sqlite3
 
@@ -70,17 +72,14 @@ class EventCapture:
     def report(self):
         self.cursor.execute("select messages.message, group_concat(problems.module_ident) from messages natural left join problems group by messages.message")
         aggregated_problems = self.cursor.fetchall()
-        logger.info("Message aggregation report:")
-        for (msg, mids) in aggregated_problems:
-            document_count = len(mids.split(','))
-            logger.info("-- '{}' for {} documents at ({})" \
-                        .format(msg, document_count, mids))
+        return aggregated_problems
 
 
 def cli_command(**kwargs):
     """The command used by the CLI to invoke the upgrade logic."""
     connection_string = kwargs['db_conn_str']
     id_select_query = kwargs['id_select_query']
+    report_file = kwargs.get('report_file', None)
 
     capture_event = EventCapture(':memory:')
     with psycopg2.connect(connection_string) as db_connection:
@@ -88,7 +87,20 @@ def cli_command(**kwargs):
          for mid, msg in produce_html_for_modules(db_connection,
                                                   id_select_query)
          ]
-    capture_event.report()
+    report = capture_event.report()
+
+    if report_file is not None:
+        report_output = csv.writer(report_file, quoting=csv.QUOTE_ALL)
+        for row in report:
+            report_output.writerow(row)
+
+    # And for human friendly output...
+    if report:
+        logger.info("Message aggregation report:")
+    for (msg, mids) in report:
+        document_count = len(mids.split(','))
+        logger.info("-- '{}' for {} documents at ({})" \
+                    .format(msg, document_count, mids))
 
 
 def cli_loader(parser):
@@ -96,4 +108,7 @@ def cli_loader(parser):
     parser.add_argument('--id-select-query', default=DEFAULT_ID_SELECT_QUERY,
                         help="an SQL query that returns module_idents to " \
                              "be converted")
+    parser.add_argument('--report-file', type=argparse.FileType('w'),
+                        default=None,
+                        help="CSV report of messages")
     return cli_command
