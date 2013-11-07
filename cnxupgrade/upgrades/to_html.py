@@ -95,7 +95,8 @@ def cli_command(**kwargs):
             report_output.writerow(row)
 
     # And for human friendly output...
-    logger.info("Message aggregation report:")
+    if report:
+        logger.info("Message aggregation report:")
     for (msg, mids) in report:
         document_count = len(mids.split(','))
         logger.info("-- '{}' for {} documents at ({})" \
