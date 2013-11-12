@@ -29,8 +29,9 @@ WHERE moduleid = %(moduleid)s ;
 
 def get_buylink(url):
     content = urllib2.urlopen(url).read()
-    if 'buyLink' in content:
-        return re.search("'buyLink', '([^']*)'", content).group(1)
+    buylink = re.search("'buyLink', '([^']*)'", content)
+    if buylink:
+        return buylink.group(1)
 
 
 def main(argv=None):
