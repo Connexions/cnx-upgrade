@@ -65,6 +65,7 @@ ALTER TABLE modules ENABLE TRIGGER ALL;
 """
 TZINFO = pytz.timezone(TZ)
 def _to_timestamp(*datetime_args):
+    datetime_args +=  (12,0) # shift from midnight to avoid timezone issues
     dt = datetime.datetime(*datetime_args)
     dt = TZINFO.localize(dt)
     return calendar.timegm(dt.utctimetuple())
