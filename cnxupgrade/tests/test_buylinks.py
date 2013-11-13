@@ -79,14 +79,23 @@ INSERT INTO modules VALUES (2, 'Module', 'm42955', '209deb1f-1a46-4369-9e0d-1867
 
     def test_no_buylink(self):
         self.argv.append('m42955')
-        self.response = "[('title', '')]"
+        self.responses = ["('title', '')"]
+        self.call_target()
+
+        self.assertEqual(self.get_buylink_from_db('m42955'), None)
+
+    def test_not_a_buylink(self):
+        self.argv.append('m42955')
+        self.responses = [
+                "[('title', ''), "
+                "('old_buyLink', 'http://buy-col11406.com/download')]",]
         self.call_target()
 
         self.assertEqual(self.get_buylink_from_db('m42955'), None)
 
     def test_collection_not_in_db(self):
         self.argv.append('col11522')
-        self.response = ("[('title', ''), "
-                "('buyLink', 'http://buy-col11522.com/download')]")
+        self.responses = ("[('title', ''), "
+                "('buyLink', 'http://buy-col11522.com/download')]",)
         # Just assert that the script does not fail
         self.call_target()
