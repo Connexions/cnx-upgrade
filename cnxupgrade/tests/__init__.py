@@ -74,7 +74,7 @@ def db_connect(method):
     """Decorator for methods that need to use the database
 
     Example:
-    @db_connection
+    @db_connect
     def setUp(self, cursor):
         cursor.execute(some_sql)
         # some other code
