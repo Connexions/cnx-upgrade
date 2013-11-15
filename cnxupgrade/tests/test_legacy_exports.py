@@ -15,7 +15,7 @@ import tempfile
 import unittest
 import urllib2
 
-from .test_upgrades_to_html import (
+from . import (
         DB_CONNECTION_STRING,
         postgresql_fixture, db_connect,
         )
