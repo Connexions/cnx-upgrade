@@ -36,11 +36,13 @@ class ToHtmlTestCase(unittest.TestCase):
         to_html.produce_html_for_modules = f
 
         self.call_target(db_conn_str=DB_CONNECTION_STRING,
-                         id_select_query='SELECT 2')
+                         id_select_query='SELECT 2',
+                         overwrite_html=False)
 
         # Assert produce_html_for_modules is called
         self.assertEqual(self.call_count, 1)
         self.assertEqual(str(type(self.args[0])),
                          "<type 'psycopg2._psycopg.connection'>")
         self.assertEqual(self.args[1], 'SELECT 2')
+        self.assertEqual(self.args[2], False)
         self.assertEqual(self.kwargs, {})

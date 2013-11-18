@@ -68,7 +68,8 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
         self.assertEqual(self.kwargs, {
             'cmmd': to_html,
             'db_conn_str': DB_CONNECTION_STRING,
-            'id_select_query': DEFAULT_ID_SELECT_QUERY})
+            'id_select_query': DEFAULT_ID_SELECT_QUERY,
+            'overwrite_html': False})
         self.assertEqual(result, 'run cnxupgrade.upgrades.to_html')
 
     def test_to_html_with_id_select_query(self):
@@ -83,7 +84,26 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
         self.assertEqual(self.kwargs, {
             'cmmd': to_html,
             'db_conn_str': DB_CONNECTION_STRING,
-            'id_select_query': 'SELECT 2'})
+            'id_select_query': 'SELECT 2',
+            'overwrite_html': False})
+        self.assertEqual(result, 'run cnxupgrade.upgrades.to_html')
+
+    def test_to_html_force_overwrite_html(self):
+        # Mock to_html.cli_command
+        to_html = self.mock('to_html')
+
+        from ..upgrades.to_html import DEFAULT_ID_SELECT_QUERY
+
+        # Invoke cnx-upgrade to_html
+        result = self.call_target(['to_html', '--force'])
+
+        # Assert to_html.cli_command was called
+        self.assertEqual(self.call_count, 1)
+        self.assertEqual(self.kwargs, {
+            'cmmd': to_html,
+            'db_conn_str': DB_CONNECTION_STRING,
+            'id_select_query': DEFAULT_ID_SELECT_QUERY,
+            'overwrite_html': True})
         self.assertEqual(result, 'run cnxupgrade.upgrades.to_html')
 
     def test_v1(self):
