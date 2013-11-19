@@ -32,7 +32,7 @@ def cli_command(**kwargs):
         # TODO Ideally, logging would be part of these for loops.
         # [x for x in produce_html_for_collections(db_connection)]
         for x in produce_html_for_modules(db_connection, id_select_query,
-                                          overwrite_html):
+                                          overwrite_html=overwrite_html):
             print x
 
 
