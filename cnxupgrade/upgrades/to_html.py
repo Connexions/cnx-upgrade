@@ -27,10 +27,12 @@ def cli_command(**kwargs):
     """The command used by the CLI to invoke the upgrade logic."""
     connection_string = kwargs['db_conn_str']
     id_select_query = kwargs['id_select_query']
+    overwrite_html = kwargs['overwrite_html']
     with psycopg2.connect(connection_string) as db_connection:
         # TODO Ideally, logging would be part of these for loops.
         # [x for x in produce_html_for_collections(db_connection)]
-        for x in produce_html_for_modules(db_connection, id_select_query):
+        for x in produce_html_for_modules(db_connection, id_select_query,
+                                          overwrite_html):
             print x
 
 
@@ -39,4 +41,7 @@ def cli_loader(parser):
     parser.add_argument('--id-select-query', default=DEFAULT_ID_SELECT_QUERY,
                         help="an SQL query that returns module_idents to " \
                              "be converted")
+    parser.add_argument('--force', dest='overwrite_html', action='store_true',
+                        default=False,
+                        help='overwrite existing HTML files in the database')
     return cli_command
