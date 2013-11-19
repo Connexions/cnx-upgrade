@@ -25,7 +25,9 @@ setup(
     license='LGPL, See aslo LICENSE.txt',
     description=description,
     packages=find_packages(),
-    package_data={'cnxupgrade.upgrades':['*-resources/*']},
+    package_data={'cnxupgrade.upgrades':['*-resources/*',
+                                         'cnxml7/resources/*']
+                 },
     install_requires=install_requires,
     tests_require=tests_require,
     extras_require=extras_require,
