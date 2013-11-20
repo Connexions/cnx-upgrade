@@ -1,0 +1,146 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE document PUBLIC "-//CNX//DTD CNXML 0.5//EN" "http://cnx.rice.edu/cnxml/0.5/DTD/cnxml_plain.dtd">
+
+<document
+    xmlns="http://cnx.rice.edu/cnxml"
+    id="m10470">
+
+    <name>Linux for Computer Scientists and Engineers</name>
+    <metadata xmlns:md="http://cnx.rice.edu/mdml/0.4">
+  <md:version>2.1</md:version>
+  <md:created>2002/01/22</md:created>
+  <md:revised>2004/08/10 08:47:25.295 GMT-5</md:revised>
+  <md:authorlist>
+      <md:author id="arudys">
+      <md:firstname>Algis</md:firstname>
+      
+      <md:surname>Rudys</md:surname>
+      <md:email>arudys@rice.edu</md:email>
+    </md:author>
+  </md:authorlist>
+
+  <md:maintainerlist>
+    <md:maintainer id="arudys">
+      <md:firstname>Algis</md:firstname>
+      
+      <md:surname>Rudys</md:surname>
+      <md:email>arudys@rice.edu</md:email>
+    </md:maintainer>
+    <md:maintainer id="reedstrm">
+      <md:firstname>Ross</md:firstname>
+      
+      <md:surname>Reedstrom</md:surname>
+      <md:email>reedstrm@rice.edu</md:email>
+    </md:maintainer>
+  </md:maintainerlist>
+  
+  <md:keywordlist>
+    <md:keyword>Linux</md:keyword>
+  </md:keywordlist>
+
+  <md:abstract></md:abstract>
+</metadata>
+    
+    <content>
+	<para id="intro">
+	    Linux is used a great deal in the computer science and
+	    engineering communities.  This is largely because of the
+	    wealth of tools available in these problem domains.
+	    Engineers and computer scientists have historically relied
+	    on various versions of UNIX, so this has been a natural
+	    progression.  Here we mention a small subset of the
+	    available tools.
+	</para>
+	<section id="emacs">
+	    <name>Emacs</name>
+	    <para id="emacs-intro">
+		Emacs is a well-known textfile editor originally
+		developed for UNIX.  It is a graphical editor, and is
+		extremely extensible and configurable.  Emacs is
+		configured and extended using a programming language
+		(called elisp), which basically means that extensions
+		can be arbitrarily powerful.  Emacs' features include
+		syntax highlighting, auto-indenting, multiple buffers
+		and windows, support for CVS, and many others. 
+	    </para>
+	</section>
+	<section id="vi">
+	    <name>VI</name>
+	    <para id="vi-intro">
+		Vi is another popular editor for UNIX.  It is much
+		smaller and less extensible than emacs.  For the
+		uninitiated, it is cryptic (you have to type a command
+		just to be able to start typing).  However, once you
+		learn the relevant commands, it is surprisingly
+		powerful.
+	    </para>
+	</section>
+	<section id="make">
+	    <name>Make</name>
+	    <para id="make-intro">
+		Make is an automated tool originally written to for
+		recompiling programs based on which files have
+		changed.  It has developed into a general-purpose tool
+		for satisfying dependencies.  You specify a
+		configuration file which contains an encoding of a
+		dependency graph and associated commands to execute to
+		satisfy a particular dependency.  Then depending on
+		which dependencies still need satisfying, make will
+		run the respective commands.
+	    </para>
+	    <example id="make-example">
+		<para id="make-example-intro">
+		    This is perhaps best-illustrated by an example.
+		    Consider the following "Makefile":
+		</para>
+		<code type='block' id="make-makefile">
+prog: prog.o
+	gcc prog.o -o prog
+
+prog.o: prog.c
+	gcc -c prog.c -o prog.o
+		</code>
+		<para id="make-example-descr">
+		    This is an example showing how to build the
+		    program <code>prog</code> from the source
+		    file <code>prog.c</code>.  It shows the
+		    file <code>prog</code> depending on the
+		    intermediate file <code>prog.o</code>, and
+		    <code>prog.o</code> depends on
+		    <code>prog.c</code>.  If
+		    <code>prog.o</code> is out of date
+		    relative to its dependencies (that is,
+		    <code>prog.c</code>), then it is
+		    regenerated using the associated command (that is,
+		    <code>gcc -c prog.c -o prog.o</code>). 
+		</para>
+	    </example>
+	</section>
+	<section id="cvs">
+	    <name>CVS</name>
+	    <para id="cvs-intro">
+		CVS is a version management system.  It is used as
+		backup storage for the current version of a file and
+		as a repository for old versions of the file.  It is
+		most commonly used to track versions of source code,
+		but can also be used for tracking LaTeX documents, web
+		pages, and has been used for configuration files as
+		well. 
+	    </para>
+	</section>
+	<section id="latex">
+	    <name>LaTeX</name>
+	    <para id="latex-intro">
+		LaTeX is a document-generation system.  It uses
+		plaintext source files with mark-up tags to indicate
+		how the text should be formatted (a lot like HTML).
+		It supports document sectioning, tables, embedded
+		figures, and (perhaps most relevant to computer
+		scientists and engineers) incredible support for
+		mathematical equations, formulas, and theorems.
+	    </para>
+	</section>
+	    
+    </content>
+    
+</document>

@@ -1,0 +1,25 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE document PUBLIC "-//CNX//DTD CNXML 0.5 plus MathML//EN" "http://cnx.rice.edu/cnxml/0.5/DTD/cnxml_mathml.dtd">
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:bib="http://bibtexml.sf.net/" id="None">
+	<name>Beamforming Basics</name>
+	<content>
+		<section id="s20">
+			<name>Introduction to Beamforming</name>
+			<para id="p21"><name>Beamformer Basics</name>Beamforming is just what the name sounds like, no pun intended.  Beamforming is the process of trying to concentrate the array to sounds coming from only one particular direction.  Spatially, this would look like a large dumbbell shaped lobe aimed in the direction of interest.  Making a beamformer is crucial to meet one of the goals of our project, which is to listen to sounds in one direction and ignore sounds in other directions.  The figure below, while it accentuates what we actually accomplished in Labview, it illustrates well what we want to do.  The best way to not listen in &apos;noisy&apos; directions, is to just steer all your energy towards listening in one direction.  This is an important concept, because it is not just used for array signal processing, it is also used in many sonar systems as well.  RADAR is actually the complete opposite process, so we will not deal with that.<figure id="fig1">
+					<media type="image/jpeg" src="beamformer.jpg"></media>
+					<caption>Visualization of a Beamformer</caption>
+				</figure></para>
+			<para id="p22"><name>Delay &amp; Sum Beamformers</name>Even though we did not use a delay and sum beamformer for the implementation of our project, it is a good first step to discuss, because it is the simplest example.  While, we were doing research for this project one of the first beamformers we learned about was the delay and sum beamformer because of its simplicity.  The delay and sum beamformer is based on the idea that if a ULA is being used, then the output of each sensor will be the same, except that each one will be delayed by a different amount.  So, if the output of each sensor is delayed appropriately then we add all the outputs together the signal that was propagating through the array will reinforce, while noise will tend to cancel.  In the Introductory module, we discussed what the time delay is for a linear array, so since the delay can be found easily, we can delay each sensor appropriately.  This would be done by delaying the first sensor output by 
+<m:math>
+ <m:semantics>
+  <m:mi>n&#964;</m:mi>
+ </m:semantics>
+</m:math>, where n is the sensor number after the first.  A block diagram of this can be seen below. </para>
+			<figure id="fig2">
+				<media type="image/jpeg" src="delay_sum_fig.jpg/"></media>
+				<caption>Block Diagram for a Delay &amp; Sum Beamformer</caption>
+			</figure>
+			<para id="p23"><name>Does this Really Work?</name>This seems too simple and to easy to work in practice.  Delay and sum beamformers are not very commonly used in practical applications, because they do not work to well, but they do explain a tricky concept simply, which is why they are often used to introduce beamforming.   The problem with further development of time-domain beamformers, such as the delay and sum is that time-domain beamformers are often difficult to design.  It is often easier to look at the frequency domain to design filters, which we can then use to steer the attention our array.  However, this is no ordinary frequency analysis, this is <link src="http://cnx.rice.edu/content/m12564/latest/">Spatial Frequency!</link></para>
+		</section>
+	</content>
+</document>
