@@ -44,5 +44,4 @@ class ToHtmlTestCase(unittest.TestCase):
         self.assertEqual(str(type(self.args[0])),
                          "<type 'psycopg2._psycopg.connection'>")
         self.assertEqual(self.args[1], 'SELECT 2')
-        self.assertEqual(self.args[2], False)
-        self.assertEqual(self.kwargs, {})
+        self.assertEqual(self.kwargs, {'overwrite_html': False})
