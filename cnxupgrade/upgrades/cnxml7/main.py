@@ -76,7 +76,7 @@ def main(db_connection, filename='index_auto_generated.cnxml'):
                 message = 'problem determining CNXML version'
             else:
                 # Try to upgrade the document...
-                source, was_upgraded, error_messages = upgrade_document(file)
+                file, was_upgraded, error_messages = upgrade_document(file)
                 if was_upgraded or cnxml_version == '0.7':
                     file = normalize_xml(file)
                     cursor.execute("INSERT INTO files (file) VALUES (%s) "

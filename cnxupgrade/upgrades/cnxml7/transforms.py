@@ -57,7 +57,8 @@ def upgrade_document(source, version=None):
 
     stylesheets = []
     if version == '0.7':
-        pass # Do nothing. 0.7 is the latest
+        # Do nothing. 0.7 is the latest
+        return source, True, ''
     elif version == '0.6':
         stylesheets.append(UPGRADE_06_TO_07_XSL)
     else:
