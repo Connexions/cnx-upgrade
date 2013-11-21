@@ -61,7 +61,8 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
         # Invoke cnx-upgrade to_html
         result = self.call_target(['to_html'])
 
-        from ..upgrades.to_html import DEFAULT_ID_SELECT_QUERY
+        from ..upgrades.to_html import (
+                DEFAULT_ID_SELECT_QUERY, DEFAULT_FILENAME)
 
         # Assert to_html.cli_command was called
         self.assertEqual(self.call_count, 1)
@@ -69,6 +70,7 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
             'cmmd': to_html,
             'db_conn_str': DB_CONNECTION_STRING,
             'id_select_query': DEFAULT_ID_SELECT_QUERY,
+            'filename': DEFAULT_FILENAME,
             'overwrite_html': False})
         self.assertEqual(result, 'run cnxupgrade.upgrades.to_html')
 
@@ -79,12 +81,15 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
         # Invoke cnx-upgrade to_html
         result = self.call_target(['to_html', '--id-select-query=SELECT 2'])
 
+        from ..upgrades.to_html import DEFAULT_FILENAME
+
         # Assert to_html.cli_command was called
         self.assertEqual(self.call_count, 1)
         self.assertEqual(self.kwargs, {
             'cmmd': to_html,
             'db_conn_str': DB_CONNECTION_STRING,
             'id_select_query': 'SELECT 2',
+            'filename': DEFAULT_FILENAME,
             'overwrite_html': False})
         self.assertEqual(result, 'run cnxupgrade.upgrades.to_html')
 
@@ -92,7 +97,8 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
         # Mock to_html.cli_command
         to_html = self.mock('to_html')
 
-        from ..upgrades.to_html import DEFAULT_ID_SELECT_QUERY
+        from ..upgrades.to_html import (
+                DEFAULT_ID_SELECT_QUERY, DEFAULT_FILENAME)
 
         # Invoke cnx-upgrade to_html
         result = self.call_target(['to_html', '--force'])
@@ -103,7 +109,27 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
             'cmmd': to_html,
             'db_conn_str': DB_CONNECTION_STRING,
             'id_select_query': DEFAULT_ID_SELECT_QUERY,
+            'filename': DEFAULT_FILENAME,
             'overwrite_html': True})
+        self.assertEqual(result, 'run cnxupgrade.upgrades.to_html')
+
+    def test_to_html_specify_filename(self):
+        # Mock to_html.cli_command
+        to_html = self.mock('to_html')
+
+        from ..upgrades.to_html import DEFAULT_ID_SELECT_QUERY
+
+        # Invoke cnx-upgrade to_html
+        result = self.call_target(['to_html', '--filename', 'a.cnxml'])
+
+        # Assert to_html.cli_command was called
+        self.assertEqual(self.call_count, 1)
+        self.assertEqual(self.kwargs, {
+            'cmmd': to_html,
+            'db_conn_str': DB_CONNECTION_STRING,
+            'id_select_query': DEFAULT_ID_SELECT_QUERY,
+            'filename': 'a.cnxml',
+            'overwrite_html': False})
         self.assertEqual(result, 'run cnxupgrade.upgrades.to_html')
 
     def test_v1(self):

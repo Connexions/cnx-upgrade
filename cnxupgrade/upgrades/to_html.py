@@ -21,6 +21,7 @@ SELECT module_ident FROM modules AS m
                           WHERE module_ident = m.module_ident
                                 AND filename = 'index.html');
 """
+DEFAULT_FILENAME = 'index_auto_generated.cnxml'
 
 
 def cli_command(**kwargs):
@@ -28,10 +29,12 @@ def cli_command(**kwargs):
     connection_string = kwargs['db_conn_str']
     id_select_query = kwargs['id_select_query']
     overwrite_html = kwargs['overwrite_html']
+    filename = kwargs['filename']
     with psycopg2.connect(connection_string) as db_connection:
         # TODO Ideally, logging would be part of these for loops.
         # [x for x in produce_html_for_collections(db_connection)]
         for x in produce_html_for_modules(db_connection, id_select_query,
+                                          source_filename=filename,
                                           overwrite_html=overwrite_html):
             print x
 
@@ -44,4 +47,7 @@ def cli_loader(parser):
     parser.add_argument('--force', dest='overwrite_html', action='store_true',
                         default=False,
                         help='overwrite existing HTML files in the database')
+    parser.add_argument('--filename', default=DEFAULT_FILENAME,
+                        help='filename to use as source in the transformation,'
+                             ' default {}'.format(DEFAULT_FILENAME))
     return cli_command

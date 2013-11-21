@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:cnxorg="http://cnx.rice.edu/system-info" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml" xmlns:q="http://cnx.rice.edu/qml/1.0" xmlns:bib="http://bibtexml.sf.net/" id="new0" module-id="" cnxml-version="0.7">
+	<title>Jenn's 0.7 Test Module</title>
+	<metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
+  <!-- WARNING! The 'metadata' section is read only. Do not edit below.
+       Changes to the metadata section in the source will not be saved. -->
+  <md:repository>http://cnx.org/content</md:repository>
+  <md:content-url>http://cnx.org/content/m11425/1.19/</md:content-url>
+  <md:content-id>m11425</md:content-id>
+  <md:title>Jenn's 0.7 Test Module</md:title>
+  <md:version>1.19</md:version>
+  <md:created>2003/07/09 18:01:11 GMT-5</md:created>
+  <md:revised>2009/10/23 09:36:02 GMT-5</md:revised>
+  <md:actors>
+    <md:person userid="drummond">
+      <md:firstname>Jenn</md:firstname>
+      <md:surname>Drummond</md:surname>
+      <md:fullname>Jenn Drummond</md:fullname>
+      <md:email>jenn+test@io.com</md:email>
+    </md:person>
+    <md:person userid="jenn">
+      <md:firstname>Jenn</md:firstname>
+      <md:surname>Drummond</md:surname>
+      <md:fullname>Jenn Drummond</md:fullname>
+      <md:email>jenn@rice.edu</md:email>
+    </md:person>
+  </md:actors>
+  <md:roles>
+    <md:role type="author">jenn drummond</md:role>
+    <md:role type="maintainer">jenn drummond</md:role>
+    <md:role type="licensor">jenn drummond</md:role>
+  </md:roles>
+  <md:license url="http://creativecommons.org/licenses/by/1.0"/>
+  <!-- For information on license requirements for use or modification, see license url in the
+       above <md:license> element.
+       For information on formatting required attribution, see the URL:
+         CONTENT_URL/content_info#cnx_cite_header
+       where CONTENT_URL is the value provided above in the <md:content-url> element.
+  -->
+  <md:derived-from url="http://cnx.org/content/m11425/latest/">
+  </md:derived-from>
+  <md:keywordlist>
+    <md:keyword>kumquat</md:keyword>
+    <md:keyword>testing</md:keyword>
+  </md:keywordlist>
+  <md:abstract/>
+  <md:language>en</md:language>
+  <!-- WARNING! The 'metadata' section is read only. Do not edit above.
+       Changes to the metadata section in the source will not be saved. -->
+</metadata>
+<featured-links>
+  <!-- WARNING! The 'featured-links' section is read only. Do not edit below.
+       Changes to the links section in the source will not be saved. -->
+    <link-group type="prerequisite">
+      <link url="http://www.rice.edu/" strength="3">Rice University</link>
+    </link-group>
+  <!-- WARNING! The 'featured-links' section is read only. Do not edit above.
+       Changes to the links section in the source will not be saved. -->
+</featured-links>
+<content>
+		<para id="intro">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nulla aliquam sollicitudin purus. Morbi tincidunt. Proin egestas arcu eget metus. Guanábana. Mauris sagittis aliquam nibh. In egestas. Sed lectus orci, posuere id, suscipit id, pharetra vitae, dui. Mauris varius, purus vitae faucibus condimentum, enim tellus suscipit urna, ac malesuada tortor lorem et risus. Cras mattis ultricies nulla. Vestibulum tempor tincidunt sapien. Fusce enim lacus, porttitor a, sodales id, convallis a, pede. Duis mattis, neque vitae auctor iaculis, erat elit luctus diam, et sagittis enim ante eu ante. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos hymenaeos. Nunc hendrerit rutrum neque. Suspendisse orci. Aliquam a metus. Vestibulum auctor. Donec at neque. Donec condimentum enim eget ligula. Nunc eleifend consectetuer felis. Sed id risus sed lacus vehicula malesuada.
+    </para>
+		<para id="proin">
+Proin quam, gravida a, tristique eu, porta ut, diam. Nam vehicula lacus ut erat. Sed ac magna. Fusce sed nulla. Aliquam ligula nulla, cursus bibendum, vehicula in, sagittis sed, urna. Aliquam dignissim eleifend pede. Nunc eu dui nec eros fringilla fringilla. Donec non nisl pharetra metus vestibulum suscipit. Vestibulum lacinia magna condimentum velit. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nulla non metus a mi dictum varius. Maecenas vel lectus a massa laoreet cursus. Cras neque. Sed in metus vel dui dapibus hendrerit. Vestibulum ullamcorper orci non odio. Nulla suscipit facilisis sem. Etiam vulputate ante sit amet leo.
+    <m:math>
+  <m:ci>x</m:ci>
+</m:math></para><para id="adipiscing">
+Nam ipsum dui, placerat quis, mollis vel, faucibus eget, ligula.
+    <list id="listum" list-type="labeled-item" display="inline">
+				<title>Listum</title>
+				<item>Ut et diam.</item>
+				<item>Donec sit amet wisi.</item>
+				<item>Nunc ut dui id est venenatis laoreet.</item>
+			</list>
+Sed justo nisl, vestibulum et, volutpat eget, aliquam id, magna. Donec pulvinar facilisis mi. Quisque consequat tortor in nunc. Fusce ornare. Vivamus quis nisl vitae enim vulputate gravida. In tortor augue, adipiscing eget, rutrum vitae, venenatis eget, nisl. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin adipiscing urna.
+    </para>
+		<para id="nonummy">
+Duis convallis porttitor enim. Donec est. Mauris blandit dignissim magna. Mauris rhoncus. Etiam laoreet mollis eros. Nulla imperdiet magna et lorem. Integer adipiscing laoreet eros. In sapien. Ut iaculis vulputate lacus. Nam gravida vestibulum odio. Nam urna justo, volutpat ac, ornare luctus, imperdiet vitae, nisl. Donec feugiat, lacus eu dignissim dictum, tortor nulla placerat metus, in porta ipsum sapien quis lectus. Nulla nulla eros, ullamcorper eu, ultrices quis, nonummy sit amet, ipsum.
+    </para>
+		<para id="mauris">
+Mauris ac nisl nec arcu volutpat feugiat. Cras lacinia, mi id dapibus pellentesque, enim tortor pellentesque urna, sed suscipit felis lectus in ligula. Suspendisse in ante eget orci commodo porta. Nullam nulla lacus, nonummy sed, tempus at, pulvinar non, ante. Aenean convallis odio id dui. Donec ac justo ut wisi volutpat vehicula. Etiam in est vitae est vestibulum lacinia. Duis at tellus. Etiam tempus pretium ligula. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nulla blandit. Fusce urna lacus, dapibus in, lobortis eu, ultrices eget, sem. Donec cursus egestas arcu. Nunc sit amet nisl sed est blandit vestibulum. Duis non est. Cras dolor. Proin quam orci, tempor sit amet, sodales pharetra, egestas vitae, arcu.
+    </para>
+	</content>
+</document>

@@ -7,6 +7,7 @@
 # ###
 import os
 from io import BytesIO
+import re
 from lxml import etree
 from .utils import apply_xslt, cnxml_parser, determine_cnxml_version
 
@@ -30,6 +31,21 @@ NAMESPACES = {
     'q': 'http://cnx.rice.edu/qml/1.0',
     }
 
+def add_namespace(source):
+    decls = []
+    for ns in NAMESPACES:
+        tag = '<{}:'.format(ns)
+        close_tag = '</{}:'.format(ns)
+        xmlns = 'xmlns:{}='.format(ns)
+        if tag in source and xmlns not in source:
+            decls.append('xmlns:{}="{}"'.format(ns, NAMESPACES[ns]))
+    if decls:
+        # Find the first tag in the xml document and add the namespace
+        # declarations
+        source = re.sub('(<[a-z]+)([ >])', r'\1 {}\2'.format(' '.join(decls)),
+                        source, count=1)
+    return source
+
 def upgrade_document(source, version=None):
     """Turn older CNXML (0.5/0.6) into newer (0.7).
     Checks version to determine if upgrade is needed.
@@ -41,13 +57,15 @@ def upgrade_document(source, version=None):
 
     stylesheets = []
     if version == '0.7':
-        pass # Do nothing. 0.7 is the latest
+        # Do nothing. 0.7 is the latest
+        return source, True, ''
     elif version == '0.6':
         stylesheets.append(UPGRADE_06_TO_07_XSL)
     else:
         stylesheets.append(UPGRADE_05_TO_06_XSL)
         stylesheets.append(UPGRADE_06_TO_07_XSL)
 
+    source = add_namespace(source)
     try:
         doc = etree.ElementTree(etree.fromstring(source, parser=cnxml_parser))
     except etree.XMLSyntaxError as exc:
