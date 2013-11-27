@@ -15,15 +15,14 @@ import unittest
 from . import DB_CONNECTION_STRING
 
 class ToHtmlTestCase(unittest.TestCase):
+
     def call_target(self, **kwargs):
         from ..upgrades import to_html
         return to_html.cli_command(**kwargs)
 
     def test(self):
         # Mock produce_html_for_modules
-        if 'cnxarchive.to_html' in sys.modules:
-            del sys.modules['cnxarchive.to_html']
-        import cnxarchive.to_html as to_html
+        from ..upgrades import to_html
         original_func = to_html.produce_html_for_modules
         self.addCleanup(setattr, to_html, 'produce_html_for_modules',
                         original_func)
@@ -33,7 +32,7 @@ class ToHtmlTestCase(unittest.TestCase):
             self.args = args
             self.kwargs = kwargs
             return []
-        to_html.produce_html_for_modules = f
+        setattr(to_html, 'produce_html_for_modules', f)
 
         self.call_target(db_conn_str=DB_CONNECTION_STRING,
                          id_select_query='SELECT 2')
