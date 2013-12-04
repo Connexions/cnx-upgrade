@@ -139,6 +139,19 @@ class V1TestCase(unittest.TestCase):
                 self.assertEqual(target_column['type'], 'uuid')
                 self.assertEqual(target_column['default'], None)
 
+    def test_abstracts_html_alteration(self):
+        # Verify the alteration to the abstracts table.
+        self.call_target()
+
+        with psycopg2.connect(self.connection_string) as db_connection:
+            with db_connection.cursor() as cursor:
+                # Check the 'abstracts' table
+                table_description = describe_table(cursor, 'abstracts')
+                target_column = table_description['html']
+                self.assertEqual(target_column['type'], 'text')
+                self.assertFalse(target_column['notnull'])
+                self.assertEqual(target_column['default'], None)
+
     def test_version_alteration(self):
         # Verify the alterations to the tables major_version
         #   and minor_version columns have been added.

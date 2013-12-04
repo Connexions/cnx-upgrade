@@ -30,6 +30,8 @@ def do_upgrade(db_connection):
     - Alter the ``modules`` and ``latest_modules`` tables to add
       the major and minor version columns. And we parse the current text
       version to populate these new values.
+    - Alters the ``abstracts`` table to add an 'html' column for
+      the transformed version of the abstract.
     - Alter the ``modules`` and ``latest_modules`` tables to add
       the ``buylink`` and ``google_analytics`` columns.
     - Adjusts the ``update_latest`` trigger function to include the new

@@ -31,7 +31,7 @@ ALTER TABLE modules ADD COLUMN "google_analytics" TEXT;
 ALTER TABLE latest_modules ADD COLUMN "google_analytics" TEXT;
 ALTER TABLE modules ADD COLUMN "buylink" TEXT;
 ALTER TABLE latest_modules ADD COLUMN "buylink" TEXT;
-
+ALTER TABLE abstracts ADD COLUMN "html" TEXT;
 
 
 -- Update the modules with a default UUID.
