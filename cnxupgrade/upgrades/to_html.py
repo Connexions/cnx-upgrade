@@ -84,12 +84,14 @@ def cli_command(**kwargs):
     id_select_query = kwargs['id_select_query']
     overwrite_html = kwargs['overwrite_html']
     filename = kwargs['filename']
+    should_transform_modules = kwargs.get('no_modules', False)
     should_transform_abstracts = kwargs.get('no_abstracts', False)
     with psycopg2.connect(connection_string) as db_connection:
-        for x in produce_html_for_modules(db_connection, id_select_query,
-                                          source_filename=filename,
-                                          overwrite_html=overwrite_html):
-            print x
+        if should_transform_modules:
+            for x in produce_html_for_modules(db_connection, id_select_query,
+                                              source_filename=filename,
+                                              overwrite_html=overwrite_html):
+                print x
         if should_transform_abstracts:
            print "Transforming abstracts..."
            for x in produce_html_for_abstracts(db_connection, id_select_query):
@@ -107,6 +109,8 @@ def cli_loader(parser):
     parser.add_argument('--filename', default=DEFAULT_FILENAME,
                         help='filename to use as source in the transformation,'
                              ' default {}'.format(DEFAULT_FILENAME))
+    parser.add_argument('--no-modules', action='store_false',
+                        help='do not transform modules')
     parser.add_argument('--no-abstracts', action='store_false',
                         help='do not transform abstracts')
     return cli_command

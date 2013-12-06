@@ -20,7 +20,7 @@ class ToHtmlTestCase(unittest.TestCase):
         from ..upgrades import to_html
         return to_html.cli_command(**kwargs)
 
-    def test(self):
+    def test_modules(self):
         # Mock produce_html_for_modules
         from ..upgrades import to_html
         original_func = to_html.produce_html_for_modules
@@ -37,7 +37,9 @@ class ToHtmlTestCase(unittest.TestCase):
         self.call_target(db_conn_str=DB_CONNECTION_STRING,
                          id_select_query='SELECT 2',
                          overwrite_html=False,
-                         filename='index.cnxml')
+                         filename='index.cnxml',
+                         no_modules=False,
+                         no_abstracts=True)
 
         # Assert produce_html_for_modules is called
         self.assertEqual(self.call_count, 1)

@@ -71,6 +71,7 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
             'db_conn_str': DB_CONNECTION_STRING,
             'id_select_query': DEFAULT_ID_SELECT_QUERY,
             'filename': DEFAULT_FILENAME,
+            'no_modules': True,
             'no_abstracts': True,
             'overwrite_html': False})
         self.assertEqual(result, 'run cnxupgrade.upgrades.to_html')
@@ -91,6 +92,7 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
             'db_conn_str': DB_CONNECTION_STRING,
             'id_select_query': 'SELECT 2',
             'filename': DEFAULT_FILENAME,
+            'no_modules': True,
             'no_abstracts': True,
             'overwrite_html': False})
         self.assertEqual(result, 'run cnxupgrade.upgrades.to_html')
@@ -112,6 +114,7 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
             'db_conn_str': DB_CONNECTION_STRING,
             'id_select_query': DEFAULT_ID_SELECT_QUERY,
             'filename': DEFAULT_FILENAME,
+            'no_modules': True,
             'no_abstracts': True,
             'overwrite_html': True})
         self.assertEqual(result, 'run cnxupgrade.upgrades.to_html')
@@ -132,6 +135,7 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
             'db_conn_str': DB_CONNECTION_STRING,
             'id_select_query': DEFAULT_ID_SELECT_QUERY,
             'filename': 'a.cnxml',
+            'no_modules': True,
             'no_abstracts': True,
             'overwrite_html': False})
         self.assertEqual(result, 'run cnxupgrade.upgrades.to_html')
