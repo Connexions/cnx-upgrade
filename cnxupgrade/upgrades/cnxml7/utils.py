@@ -76,7 +76,7 @@ def determine_cnxml_version(source):
 
 
 XML_PARSER_KWARGS = dict(load_dtd=True, resolve_entities=True,
-                         no_network=True, attribute_defaults=False)
+                         no_network=False, attribute_defaults=False)
 cnxml_parser = etree.XMLParser(**XML_PARSER_KWARGS)
 xml_parser = etree.XMLParser(**XML_PARSER_KWARGS)
 
