@@ -32,6 +32,7 @@ UPGRADES = (
     'migrate_hit_counts',
     'cnxml7',
     'create_collection_minor_versions',
+    'remove_testdraft',
     )
 # TODO Look this up via setuptools entry-point so that it only needs to be
 #      changed at the distribution level on say release or tag.

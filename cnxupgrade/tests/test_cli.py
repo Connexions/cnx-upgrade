@@ -191,3 +191,18 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
             'id_select_query': 'select 2',
             })
         self.assertEqual(result, 'run cnxupgrade.upgrades.create_collection_minor_versions')
+
+    def test_remove_testdraft(self):
+        # Mock remove_testdraft.cli_command
+        remove_testdraft = self.mock('remove_testdraft')
+
+        # Invoke cnx-upgrade remove_testdraft
+        result = self.call_target(['remove_testdraft'])
+
+        # Assert remove_testdraft was called
+        self.assertEqual(self.call_count, 1)
+        self.assertEqual(self.kwargs, {
+            'cmmd': remove_testdraft,
+            'db_conn_str': DB_CONNECTION_STRING,
+            })
+        self.assertEqual(result, 'run cnxupgrade.upgrades.remove_testdraft')
