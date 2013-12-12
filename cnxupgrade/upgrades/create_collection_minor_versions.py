@@ -6,12 +6,26 @@
 # See LICENCE.txt for details.
 # ###
 
+import psycopg2
+
 from cnxarchive.database import (get_collection_tree, next_version,
-        republish_collection, rebuild_collection_tree)
+        republish_collection, rebuild_collection_tree, get_minor_version)
+
+__all__ = ('cli_loader',)
+
+DEFAULT_ID_SELECT_QUERY = '''\
+SELECT module_ident FROM latest_modules
+WHERE portal_type='Collection' AND minor_version=1
+ORDER BY revised
+'''
 
 def create_collection_minor_versions(cursor, collection_ident):
     """Migration to create collection minor versions from the existing modules
     and collections """
+    if get_minor_version(collection_ident, cursor) is None:
+        # Not a collection so do nothing
+        return
+
     # Get the collection tree
     # modules = []
     # Loop over each module
@@ -94,3 +108,33 @@ def create_collection_minor_versions(cursor, collection_ident):
 
         next_minor_version += 1
         collection_ident = new_ident
+
+def cli_command(**kwargs):
+    """The command used by the CLI to invoke the upgrade logic.
+    """
+    db_conn = kwargs['db_conn_str']
+    id_select_query = kwargs['id_select_query']
+    with psycopg2.connect(db_conn) as db_connection:
+        with db_connection.cursor() as cursor:
+            cursor.execute("ALTER TABLE modules DISABLE TRIGGER module_published")
+
+            cursor.execute(id_select_query)
+            cols = cursor.fetchall()
+            print 'Number of collections: {}'.format(len(cols))
+            for i, col in enumerate(cols):
+                module_ident = col[0]
+                print 'Processing #{}, collection ident {}'.format(i, module_ident)
+                create_collection_minor_versions(cursor, module_ident)
+                if i % 10:
+                    db_connection.commit()
+            cursor.execute("ALTER TABLE modules ENABLE TRIGGER module_published")
+        db_connection.commit()
+
+def cli_loader(parser):
+    """Used to load the CLI toggles and switches.
+    """
+    parser.add_argument('--id-select-query', default=DEFAULT_ID_SELECT_QUERY,
+                        help='an SQL query that returns module_idents to '
+                             'create collection minor versions for, '
+                             'default {}'.format(DEFAULT_ID_SELECT_QUERY))
+    return cli_command

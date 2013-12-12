@@ -20,10 +20,8 @@ and must return a function for the cli to hand arguments to
 """
 import sys
 
-from .create_collection_minor_versions import create_collection_minor_versions
 
-
-__all__ = ('load_cli', 'get_default', 'create_collection_minor_versions')
+__all__ = ('load_cli', 'get_default',)
 
 
 # TODO Make upgrade discovery magical. In other words, load the upgrade
@@ -33,6 +31,7 @@ UPGRADES = (
     'v1',
     'migrate_hit_counts',
     'cnxml7',
+    'create_collection_minor_versions',
     )
 # TODO Look this up via setuptools entry-point so that it only needs to be
 #      changed at the distribution level on say release or tag.

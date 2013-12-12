@@ -174,3 +174,20 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
             'cmmd': migrate_hit_counts,
             'db_conn_str': DB_CONNECTION_STRING})
         self.assertEqual(result, 'run cnxupgrade.upgrades.migrate_hit_counts')
+
+    def test_create_collection_minor_versions(self):
+        # Mock create_collection_minor_versions.cli_command
+        create_collection = self.mock('create_collection_minor_versions')
+
+        # Invoke cnx-upgrade create_collection_minor_versions
+        result = self.call_target(['create_collection_minor_versions',
+            '--id-select-query', 'select 2'])
+
+        # Assert create_collection_minor_versions was called
+        self.assertEqual(self.call_count, 1)
+        self.assertEqual(self.kwargs, {
+            'cmmd': create_collection,
+            'db_conn_str': DB_CONNECTION_STRING,
+            'id_select_query': 'select 2',
+            })
+        self.assertEqual(result, 'run cnxupgrade.upgrades.create_collection_minor_versions')
