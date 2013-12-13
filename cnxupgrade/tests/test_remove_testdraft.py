@@ -5,7 +5,9 @@
 # Public License version 3 (AGPLv3).
 # See LICENCE.txt for details.
 # ###
+from io import BytesIO
 import os
+import sys
 import unittest
 
 import psycopg2
@@ -95,3 +97,37 @@ class SubjectRemovalTestCase(unittest.TestCase):
                     cursor.execute("SELECT * FROM module_files "
                                    "WHERE module_ident = %s", (id,))
                     self.assertEqual(cursor.fetchall(), [])
+
+
+class CliTestCase(unittest.TestCase):
+
+    def setUp(self):
+        from ..upgrades import remove_testdraft
+        original = remove_testdraft.remove_subject
+        self.addCleanup(setattr, remove_testdraft, 'remove_subject', original)
+
+        # Mock remove_subject
+        self.call_count = 0
+        def mock(*args, **kwargs):
+            self.call_count += 1
+            self.args = args
+            self.kwargs = kwargs
+        remove_testdraft.remove_subject = mock
+
+        # Capture stdout
+        stdout = sys.stdout
+        self.addCleanup(setattr, sys, 'stdout', stdout)
+        sys.stdout = BytesIO()
+
+    def call_target(self, **kwargs):
+        from ..upgrades.remove_testdraft import cli_command
+        return cli_command(**kwargs)
+
+    def test(self):
+        self.call_target(db_conn_str=DB_CONNECTION_STRING)
+
+        self.assertEqual(self.call_count, 1)
+        self.assertEqual(self.args[0], 'Test/Draft')
+        self.assertEqual(str(type(self.args[1])),
+                "<type 'psycopg2._psycopg.connection'>")
+        self.assertEqual(self.kwargs, {})
