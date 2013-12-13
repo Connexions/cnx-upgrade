@@ -115,6 +115,58 @@ class CollectionMigrationTestCase(unittest.TestCase):
         cursor.execute('SELECT COUNT(*) FROM modules')
         self.assertEqual(cursor.fetchone()[0], old_num_modules + 3)
 
+    @db_connect
+    def test_minor_versions_already_created(self, cursor):
+        """Test case for when minor versions already exist
+        """
+        cursor.execute('SELECT COUNT(*) FROM modules')
+        old_num_modules = cursor.fetchone()[0]
+
+        m1_uuid = str(uuid.uuid4())
+        m2_uuid = str(uuid.uuid4())
+        c1_uuid = str(uuid.uuid4())
+        module_idents = list(self.insert_modules(cursor, (
+            # portal_type, moduleid, uuid, version, name, revised,
+            # major_version, minor_version
+            ('Module', 'm1', m1_uuid, '1.1', 'Name of module m1',
+                '2013-10-01 11:24:00.000000+02', 1, None),
+            ('Module', 'm2', m2_uuid, '1.9', 'Name of module m2',
+                '2013-10-01 12:24:00.000000+02', 9, None),
+            ('Collection', 'c1', c1_uuid, '1.5', 'Name of collection c1',
+                '2013-10-02 21:43:00.000000+02', 5, 1),
+            ('Module', 'm1', m1_uuid, '1.2', 'Name of module m1',
+                '2013-10-02 22:24:00.000000+02', 2, None),
+            ('Module', 'm1', m1_uuid, '1.3', 'Name of module m1',
+                '2013-10-02 23:24:00.000000+02', 3, None),
+            ('Collection', 'c1', c1_uuid, '1.5', 'Name of collection c1',
+                '2013-10-02 23:24:00.000000+02', 5, 2),
+            ('Collection', 'c1', c1_uuid, '1.6', 'Name of collection c1',
+                '2013-10-03 12:00:00.000000+02', 6, 1),
+            )))
+
+        self.create_collection_tree(cursor, (
+            (None, module_idents[2]),
+            (module_idents[2], module_idents[0]),
+            (module_idents[2], module_idents[1])))
+
+        self.create_collection_tree(cursor, (
+            (None, module_idents[5]),
+            (module_idents[5], module_idents[4]),
+            (module_idents[5], module_idents[1])))
+
+        self.create_collection_tree(cursor, (
+            (None, module_idents[6]),
+            (module_idents[6], module_idents[4]),
+            (module_idents[6], module_idents[1])))
+
+        self.call_target(cursor, module_idents[2])
+        self.call_target(cursor, module_idents[5])
+        self.call_target(cursor, module_idents[6])
+
+        # Assert that the script did not add any additional collections
+        cursor.execute('SELECT COUNT(*) FROM modules')
+        new_num_modules = cursor.fetchone()[0]
+        self.assertEqual(old_num_modules + len(module_idents), new_num_modules)
 
     @db_connect
     def test_no_minor_version(self, cursor):

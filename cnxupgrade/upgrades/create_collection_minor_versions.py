@@ -62,19 +62,24 @@ def create_collection_minor_versions(cursor, collection_ident):
     cursor.execute('''
     (
         WITH current AS (
-            SELECT uuid, revised FROM modules WHERE module_ident = %s
+            SELECT uuid, revised, minor_version FROM modules WHERE module_ident = %s
         )
-        SELECT m.module_ident, m.revised FROM modules m, current
+        SELECT m.module_ident, m.revised, m.minor_version FROM modules m, current
         WHERE m.uuid = current.uuid AND m.revised >= current.revised
         ORDER BY m.revised
     )
-    UNION ALL SELECT NULL, CURRENT_TIMESTAMP
+    UNION ALL SELECT NULL, CURRENT_TIMESTAMP, 1
     LIMIT 2;
     ''',
         [collection_ident])
     results = cursor.fetchall()
-    this_module_ident, this_revised = results[0]
-    next_module_ident, next_revised = results[1]
+    this_module_ident, this_revised, this_minor_version = results[0]
+    next_module_ident, next_revised, next_minor_version = results[1]
+
+    if next_minor_version != 1:
+        # minor versions already created for this collection
+        # so nothing to do
+        return
 
     # gather all relevant module versions
     sql = '''SELECT DISTINCT(m.module_ident), m.revised FROM modules m
