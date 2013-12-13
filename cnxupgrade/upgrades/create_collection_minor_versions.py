@@ -6,6 +6,8 @@
 # See LICENCE.txt for details.
 # ###
 
+import datetime
+
 import psycopg2
 
 from cnxarchive.database import (get_collection_tree, next_version,
@@ -18,6 +20,24 @@ SELECT module_ident FROM latest_modules
 WHERE portal_type='Collection' AND minor_version=1
 ORDER BY revised
 '''
+
+def fix_document_id_map(document_id_map):
+    # Sometimes we end up with a document_id_map that looks like this:
+    # {1: 5, 2: 3, 3: 4}
+    # Which means document 1 is replaced by document 5,
+    # document 2 by 3 and document 3 by 4
+    #
+    # But really we just want document 2 to be replaced by 4 directly
+    # so we need to turn it into {1: 5, 2: 4}
+    # so we know we're replacing document 2 with document 4, not 3
+    for old_ident, new_ident in document_id_map.iteritems():
+        if new_ident in document_id_map:
+            document_id_map[old_ident] = document_id_map.pop(new_ident)
+            break
+    else:
+        # went through the loop and nothing needs to be changed
+        return
+    fix_document_id_map(document_id_map)
 
 def create_collection_minor_versions(cursor, collection_ident):
     """Migration to create collection minor versions from the existing modules
@@ -98,13 +118,31 @@ def create_collection_minor_versions(cursor, collection_ident):
 
     modules.sort(lambda a, b: cmp(a[1], b[1])) # sort modules by revised
 
-    next_minor_version = next_version(collection_ident, cursor)
+    # batch process modules that are revised within 24 hours of each other
+    batched_modules = []
+    last_revised = None
     for module_ident, module_revised in modules:
-        new_ident = republish_collection(next_minor_version, collection_ident, cursor, revised=module_revised)
-        rebuild_collection_tree(collection_ident, {
-            collection_ident: new_ident,
-            old_module_idents[module_ident]: module_ident,
-            }, cursor)
+        if (last_revised is None or
+                module_revised - last_revised >= datetime.timedelta(1)):
+            batched_modules.append([(module_ident, module_revised)])
+            last_revised = module_revised
+        else:
+            batched_modules[-1].append((module_ident, module_revised))
+
+    next_minor_version = next_version(collection_ident, cursor)
+    for modules in batched_modules:
+        # revised should be the revised of the latest module
+        module_revised = modules[-1][1]
+        new_ident = republish_collection(next_minor_version, collection_ident,
+                                         cursor, revised=module_revised)
+
+        document_id_map = {collection_ident: new_ident}
+        module_idents = [m[0] for m in modules]
+        for module_ident, module_revised in modules:
+            document_id_map[old_module_idents[module_ident]] = module_ident
+        fix_document_id_map(document_id_map)
+
+        rebuild_collection_tree(collection_ident, document_id_map, cursor)
 
         next_minor_version += 1
         collection_ident = new_ident

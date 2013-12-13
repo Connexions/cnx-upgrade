@@ -14,6 +14,23 @@ import uuid
 
 from . import postgresql_fixture, db_connect, DB_CONNECTION_STRING
 
+
+class FixDocumentIdMapTestCase(unittest.TestCase):
+    def call_target(self, document_id_map):
+        from ..upgrades.create_collection_minor_versions import fix_document_id_map
+        return fix_document_id_map(document_id_map)
+
+    def test_no_change(self):
+        m = {1: 10, 2: 5, 3: 7}
+        self.call_target(m)
+        self.assertEqual(m, {1: 10, 2: 5, 3: 7})
+
+    def test_success(self):
+        m = {1: 5, 2: 3, 3: 4}
+        self.call_target(m)
+        self.assertEqual(m, {1: 5, 2: 4})
+
+
 class CollectionMigrationTestCase(unittest.TestCase):
     """Tests for creating collection minor versions for collections that are
     already in the database
@@ -150,6 +167,7 @@ class CollectionMigrationTestCase(unittest.TestCase):
 
         m1_uuid = str(uuid.uuid4())
         m2_uuid = str(uuid.uuid4())
+        m3_uuid = str(uuid.uuid4())
         c1_uuid = str(uuid.uuid4())
         module_idents = list(self.insert_modules(cursor, (
             # portal_type, moduleid, uuid, version, name, revised,
@@ -158,44 +176,60 @@ class CollectionMigrationTestCase(unittest.TestCase):
                 '2013-10-01 11:24:00.000000-07', 1, None),
             ('Module', 'm2', m2_uuid, '1.9', 'Name of module m2',
                 '2013-10-01 12:24:00.000000-07', 9, None),
+            ('Module', 'm3', m3_uuid, '1.1', 'Name of module m3',
+                '2013-10-01 13:24:00.000000-07', 1, None),
+
             ('Collection', 'c1', c1_uuid, '1.5', 'Name of collection c1',
                 '2013-10-02 21:43:00.000000-07', 5, 1),
+
             ('Module', 'm1', m1_uuid, '1.2', 'Changed name of module m1',
                 '2013-10-03 09:00:00.000000-07', 2, None),
+
             ('Collection', 'c1', c1_uuid, '1.6', 'Name of collection c1',
                 '2013-10-03 12:00:00.000000-07', 6, 1),
+
             ('Module', 'm1', m1_uuid, '1.3', 'Changed name again m1',
                 '2013-10-03 12:01:00.000000-07', 3, None),
+            # Modules published within 24 hours
             ('Module', 'm2', m2_uuid, '1.10', 'Changed name of module m2',
-                '2013-10-03 12:02:00.000000-07', 10, None),
+                '2013-10-05 12:02:00.000000-07', 10, None),
             ('Module', 'm2', m2_uuid, '1.11', 'Changed name of module m2',
-                '2013-10-03 12:03:00.000000-07', 11, None),
+                '2013-10-05 18:03:00.000000-07', 11, None),
+            ('Module', 'm3', m3_uuid, '1.2', 'm3',
+                '2013-10-05 23:05:00.000000-07', 2, None),
+
+            ('Module', 'm3', m3_uuid, '1.3', 'm3',
+                '2013-10-06 12:05:00.000000-07', 3, None),
+
             ('Collection', 'c1', c1_uuid, '1.7', 'Name of collection c1',
                 '2013-10-07 12:00:00.000000-07', 7, 1),
             )))
 
         self.create_collection_tree(cursor, (
-            (None, module_idents[2]),
-            (module_idents[2], module_idents[0]),
-            (module_idents[2], module_idents[1])))
+            (None, module_idents[3]),
+            (module_idents[3], module_idents[0]),
+            (module_idents[3], module_idents[1]),
+            (module_idents[3], module_idents[2])))
 
         self.create_collection_tree(cursor, (
-            (None, module_idents[4]),
-            (module_idents[4], module_idents[3]),
-            (module_idents[4], module_idents[1])))
+            (None, module_idents[5]),
+            (module_idents[5], module_idents[4]),
+            (module_idents[5], module_idents[1]),
+            (module_idents[5], module_idents[2])))
 
         self.create_collection_tree(cursor, (
-            (None, module_idents[7]),
-            (module_idents[7], module_idents[5]),
-            (module_idents[7], module_idents[6])))
+            (None, module_idents[11]),
+            (module_idents[11], module_idents[6]),
+            (module_idents[11], module_idents[8]),
+            (module_idents[11], module_idents[10])))
 
         cursor.execute('SELECT COUNT(*) FROM modules')
         new_num_modules = cursor.fetchone()[0]
-        # we inserted 9 rows into the modules table
-        self.assertEqual(old_num_modules + 9, new_num_modules)
+        # we inserted 12 rows into the modules table
+        self.assertEqual(old_num_modules + 12, new_num_modules)
 
-        self.call_target(cursor, module_idents[2])
-        self.call_target(cursor, module_idents[4])
+        self.call_target(cursor, module_idents[3])
+        self.call_target(cursor, module_idents[5])
 
         old_num_modules = new_num_modules
         cursor.execute('SELECT COUNT(*) FROM modules')
@@ -222,13 +256,14 @@ class CollectionMigrationTestCase(unittest.TestCase):
         # revised
         self.assertEqual(str(rev_5_2[7]), '2013-10-03 09:00:00-07:00')
 
-        # Check tree contains m1 v1.2 and m2 v1.9
+        # Check tree contains m1 v1.2 and m2 v1.9 and m3 v1.1
         cursor.execute(tree_sql, [rev_5_2[0]])
         tree = cursor.fetchall()
-        self.assertEqual(len(tree), 3)
+        self.assertEqual(len(tree), 4)
         self.assertEqual(tree[0][2], rev_5_2[0])
-        self.assertEqual(tree[1][2], module_idents[3])
+        self.assertEqual(tree[1][2], module_idents[4])
         self.assertEqual(tree[2][2], module_idents[1])
+        self.assertEqual(tree[3][2], module_idents[2])
 
         # Check c1 v6.2
         cursor.execute('''SELECT * FROM modules
@@ -239,13 +274,14 @@ class CollectionMigrationTestCase(unittest.TestCase):
         # revised
         self.assertEqual(str(rev_6_2[7]), '2013-10-03 12:01:00-07:00')
 
-        # Check tree contains m1 v1.3 and m2 v1.9
+        # Check tree contains m1 v1.3 and m2 v1.9 and m3 v1.1
         cursor.execute(tree_sql, [rev_6_2[0]])
         tree = cursor.fetchall()
-        self.assertEqual(len(tree), 3)
+        self.assertEqual(len(tree), 4)
         self.assertEqual(tree[0][2], rev_6_2[0])
-        self.assertEqual(tree[1][2], module_idents[5])
+        self.assertEqual(tree[1][2], module_idents[6])
         self.assertEqual(tree[2][2], module_idents[1])
+        self.assertEqual(tree[3][2], module_idents[2])
 
         # Check c1 v6.3
         cursor.execute('''SELECT * FROM modules
@@ -254,15 +290,18 @@ class CollectionMigrationTestCase(unittest.TestCase):
         rev_6_3 = cursor.fetchone()
         self.assertEqual(rev_6_3[4], '1.6') # legacy version
         # revised
-        self.assertEqual(str(rev_6_3[7]), '2013-10-03 12:02:00-07:00')
+        self.assertEqual(str(rev_6_3[7]), '2013-10-05 23:05:00-07:00')
 
-        # Check tree contains m1 v1.3 and m2 v1.10
+        # Check tree contains m1 v1.3 and m2 v1.11 and m3 v1.2
+        # m2 v1.10 v1.11 and m3 v1.2 increment the minor
+        # version only once
         cursor.execute(tree_sql, [rev_6_3[0]])
         tree = cursor.fetchall()
-        self.assertEqual(len(tree), 3)
+        self.assertEqual(len(tree), 4)
         self.assertEqual(tree[0][2], rev_6_3[0])
-        self.assertEqual(tree[1][2], module_idents[5])
-        self.assertEqual(tree[2][2], module_idents[6])
+        self.assertEqual(tree[1][2], module_idents[6])
+        self.assertEqual(tree[2][2], module_idents[8])
+        self.assertEqual(tree[3][2], module_idents[9])
 
         # Check c1 v6.4
         cursor.execute('''SELECT * FROM modules
@@ -271,15 +310,16 @@ class CollectionMigrationTestCase(unittest.TestCase):
         rev_6_4 = cursor.fetchone()
         self.assertEqual(rev_6_4[4], '1.6') # legacy version
         # revised
-        self.assertEqual(str(rev_6_4[7]), '2013-10-03 12:03:00-07:00')
+        self.assertEqual(str(rev_6_4[7]), '2013-10-06 12:05:00-07:00')
 
-        # Check tree contains m1 v1.3 and m2 v1.11
+        # Check tree contains m1 v1.3 and m2 v1.11 and m3 v1.3
         cursor.execute(tree_sql, [rev_6_4[0]])
         tree = cursor.fetchall()
-        self.assertEqual(len(tree), 3)
+        self.assertEqual(len(tree), 4)
         self.assertEqual(tree[0][2], rev_6_4[0])
-        self.assertEqual(tree[1][2], module_idents[5])
-        self.assertEqual(tree[2][2], module_idents[7])
+        self.assertEqual(tree[1][2], module_idents[6])
+        self.assertEqual(tree[2][2], module_idents[8])
+        self.assertEqual(tree[3][2], module_idents[10])
 
 
 class CliTestCase(unittest.TestCase):
