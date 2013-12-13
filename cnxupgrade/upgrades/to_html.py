@@ -19,7 +19,7 @@ SELECT module_ident FROM modules AS m
   WHERE portal_type = 'Module'
         AND NOT EXISTS (SELECT 1 FROM module_files
                           WHERE module_ident = m.module_ident
-                                AND filename = 'index.html');
+                                AND filename = 'index.cnxml.html');
 """
 DEFAULT_FILENAME = 'index_auto_generated.cnxml'
 
