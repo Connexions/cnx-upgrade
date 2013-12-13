@@ -41,8 +41,8 @@ INSERT INTO module_files (fileid, module_ident, filename, uuid) VALUES (1, 1, 'i
         ''', (moduleid, version,
               memoryview(get_data_file(
                   '{}-{}.cnxml'.format(moduleid, version)))))
-        # remove index.html
-        cursor.execute("DELETE FROM module_files WHERE filename = 'index.html'")
+        # remove index.cnxml.html
+        cursor.execute("DELETE FROM module_files WHERE filename = 'index.cnxml.html'")
 
     def tearDown(self):
         self.fixture.tearDown()
