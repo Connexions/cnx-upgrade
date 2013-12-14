@@ -210,6 +210,57 @@ class CollectionMigrationTestCase(unittest.TestCase):
         self.assertEqual(old_num_modules + 4, new_num_modules)
 
     @db_connect
+    def test_modules_newer_than_collection(self, cursor):
+        """Test case for invalid data when the modules inside the collection
+        tree are newer than the collection itself.
+
+        This is not supposed to be possible but we have data like this from
+        legacy.
+        """
+        cursor.execute('SELECT COUNT(*) FROM modules')
+        old_num_modules = cursor.fetchone()[0]
+
+        m1_uuid = str(uuid.uuid4())
+        m2_uuid = str(uuid.uuid4())
+        m3_uuid = str(uuid.uuid4())
+        c1_uuid = str(uuid.uuid4())
+        module_idents = list(self.insert_modules(cursor, (
+            # portal_type, moduleid, uuid, version, name, revised,
+            # major_version, minor_version
+            ('Collection', 'c1', c1_uuid, '1.5', 'Name of collection c1',
+                '2013-10-02 21:43:00.000000-07', 5, 1),
+
+            ('Module', 'm1', m1_uuid, '1.1', 'Name of module m1',
+                '2013-10-03 11:24:00.000000-07', 1, None),
+            ('Module', 'm2', m2_uuid, '1.9', 'Name of module m2',
+                '2013-10-03 12:24:00.000000-07', 9, None),
+            ('Module', 'm3', m3_uuid, '1.1', 'Name of module m3',
+                '2013-10-03 13:24:00.000000-07', 1, None),
+
+            ('Module', 'm1', m1_uuid, '1.2', 'Name of module m1',
+                '2013-12-13 01:11:00.000000-07', 2, None),
+            )))
+
+        self.create_collection_tree(cursor, (
+            (None, module_idents[0]),
+            (module_idents[0], module_idents[1]),
+            (module_idents[0], module_idents[2]),
+            (module_idents[0], module_idents[3]),
+            ))
+
+        self.call_target(cursor, module_idents[0])
+
+        # Although m1, m2 and m3 are published after c1, c1
+        # should not get a minor update because they are in
+        # the c1 collection tree
+
+        # Only one minor version should be created for m1 v1.2
+        cursor.execute('SELECT COUNT(*) FROM modules')
+        new_num_modules = cursor.fetchone()[0]
+        self.assertEqual(old_num_modules + len(module_idents) + 1,
+                         new_num_modules)
+
+    @db_connect
     def test_create_minor_versions(self, cursor):
         """Test case for when there are modules published in between collection
         versions and there is a need to create minor versions of a collection

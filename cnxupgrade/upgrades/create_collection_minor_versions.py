@@ -136,16 +136,28 @@ def create_collection_minor_versions(cursor, collection_ident):
 
     next_minor_version = next_version(collection_ident, cursor)
     for modules in batched_modules:
+        # create a mapping for how the documents are going to be updated
+        document_id_map = {}
+        module_idents = [m[0] for m in modules]
+        for module_ident, module_revised in modules:
+            if old_module_idents[module_ident] == module_ident:
+                # module is replaced by itself
+                # happens when the modules in the collection tree are newer
+                # than the collection itself
+                # (a bug in the data)
+                continue
+            document_id_map[old_module_idents[module_ident]] = module_ident
+        if not document_id_map:
+            # no documents are updated so skip the loop and don't create a new
+            # minor version
+            continue
+        fix_document_id_map(document_id_map)
+
         # revised should be the revised of the latest module
         module_revised = modules[-1][1]
         new_ident = republish_collection(next_minor_version, collection_ident,
                                          cursor, revised=module_revised)
-
-        document_id_map = {collection_ident: new_ident}
-        module_idents = [m[0] for m in modules]
-        for module_ident, module_revised in modules:
-            document_id_map[old_module_idents[module_ident]] = module_ident
-        fix_document_id_map(document_id_map)
+        document_id_map[collection_ident] = new_ident
 
         rebuild_collection_tree(collection_ident, document_id_map, cursor)
 
