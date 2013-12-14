@@ -124,6 +124,31 @@ END;
 ' LANGUAGE 'plpgsql';
 
 
+CREATE OR REPLACE FUNCTION republish_module ()
+  RETURNS trigger
+AS $$
+  from cnxarchive.database import republish_module_trigger
+  return republish_module_trigger(plpy, TD)
+$$ LANGUAGE plpythonu;
+
+CREATE TRIGGER module_published
+  BEFORE INSERT ON modules FOR EACH ROW
+  EXECUTE PROCEDURE republish_module();
+
+
+CREATE OR REPLACE FUNCTION add_module_file ()
+  RETURNS trigger
+AS $$
+  from cnxarchive.database import add_module_file
+  return add_module_file(plpy, TD)
+$$ LANGUAGE plpythonu;
+
+CREATE TRIGGER module_file_added
+  AFTER INSERT ON module_files FOR EACH ROW WHEN ( new.filename = 'index.cnxml' )
+  EXECUTE PROCEDURE add_module_file();
+
+
+
 -- Set constraints on the column ONLY after the data base been updated.
 ALTER TABLE modules ALTER COLUMN "uuid" SET NOT NULL;
 ALTER TABLE modules ALTER COLUMN "uuid" SET DEFAULT uuid_generate_v4();
