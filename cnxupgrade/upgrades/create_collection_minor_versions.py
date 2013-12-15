@@ -83,8 +83,9 @@ def create_collection_minor_versions(cursor, collection_ident):
 
     # gather all relevant module versions
     sql = '''SELECT DISTINCT(m.module_ident), m.revised FROM modules m
-    WHERE m.revised > %s AND m.revised < %s AND m.uuid = (
-        SELECT uuid FROM modules WHERE module_ident = %s)
+    WHERE m.revised > %s AND m.revised < %s AND
+        m.uuid = (SELECT uuid FROM modules WHERE module_ident = %s) AND
+        m.revised > (SELECT revised FROM modules WHERE module_ident = %s)
     ORDER BY m.revised
     '''
 
@@ -93,7 +94,7 @@ def create_collection_minor_versions(cursor, collection_ident):
     for module_ident, portal_type in get_collection_tree(collection_ident,
             cursor):
         if portal_type == 'Module':
-            cursor.execute(sql, [this_revised, next_revised, module_ident])
+            cursor.execute(sql, [this_revised, next_revised, module_ident, module_ident])
 
             # get all the modules with the same uuid that have been published
             # between this collection version and the next version
@@ -136,28 +137,16 @@ def create_collection_minor_versions(cursor, collection_ident):
 
     next_minor_version = next_version(collection_ident, cursor)
     for modules in batched_modules:
-        # create a mapping for how the documents are going to be updated
-        document_id_map = {}
-        module_idents = [m[0] for m in modules]
-        for module_ident, module_revised in modules:
-            if old_module_idents[module_ident] == module_ident:
-                # module is replaced by itself
-                # happens when the modules in the collection tree are newer
-                # than the collection itself
-                # (a bug in the data)
-                continue
-            document_id_map[old_module_idents[module_ident]] = module_ident
-        if not document_id_map:
-            # no documents are updated so skip the loop and don't create a new
-            # minor version
-            continue
-        fix_document_id_map(document_id_map)
-
         # revised should be the revised of the latest module
         module_revised = modules[-1][1]
         new_ident = republish_collection(next_minor_version, collection_ident,
                                          cursor, revised=module_revised)
-        document_id_map[collection_ident] = new_ident
+
+        document_id_map = {collection_ident: new_ident}
+        module_idents = [m[0] for m in modules]
+        for module_ident, module_revised in modules:
+            document_id_map[old_module_idents[module_ident]] = module_ident
+        fix_document_id_map(document_id_map)
 
         rebuild_collection_tree(collection_ident, document_id_map, cursor)
 

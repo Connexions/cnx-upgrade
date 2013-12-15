@@ -72,14 +72,23 @@ class CollectionMigrationTestCase(unittest.TestCase):
     def create_collection_tree(self, cursor, relationships):
         # relationships should look like this:
         # ((parent_module_ident, child_module_ident), ...)
+        #
         # parent_module_ident should be None for the root
+        #
+        # module_ident can be a string for subcollections
         childorder = 0
         module_ident_to_nodeid = {}
         for parent_module_ident, child_module_ident in relationships:
+            if isinstance(child_module_ident, str):
+                # it's a subcollection
+                child = None
+            else:
+                # it's a normal module
+                child = child_module_ident
             cursor.execute('''INSERT INTO trees VALUES (
             DEFAULT, %s, %s, '', %s, NULL) RETURNING nodeid''', [
                 module_ident_to_nodeid.get(parent_module_ident, None),
-                child_module_ident, childorder])
+                child, childorder])
             childorder += 1
             module_ident_to_nodeid[child_module_ident] = cursor.fetchone()[0]
 
@@ -220,41 +229,73 @@ class CollectionMigrationTestCase(unittest.TestCase):
         cursor.execute('SELECT COUNT(*) FROM modules')
         old_num_modules = cursor.fetchone()[0]
 
-        m1_uuid = str(uuid.uuid4())
-        m2_uuid = str(uuid.uuid4())
-        m3_uuid = str(uuid.uuid4())
-        c1_uuid = str(uuid.uuid4())
+        m12047 = str(uuid.uuid4())
+        m12048 = str(uuid.uuid4())
+        m12049 = str(uuid.uuid4())
+        m12050 = str(uuid.uuid4())
+        col10233 = str(uuid.uuid4())
+
         module_idents = list(self.insert_modules(cursor, (
             # portal_type, moduleid, uuid, version, name, revised,
             # major_version, minor_version
-            ('Collection', 'c1', c1_uuid, '1.5', 'Name of collection c1',
-                '2013-10-02 21:43:00.000000-07', 5, 1),
 
-            ('Module', 'm1', m1_uuid, '1.1', 'Name of module m1',
-                '2013-10-03 11:24:00.000000-07', 1, None),
-            ('Module', 'm2', m2_uuid, '1.9', 'Name of module m2',
-                '2013-10-03 12:24:00.000000-07', 9, None),
-            ('Module', 'm3', m3_uuid, '1.1', 'Name of module m3',
-                '2013-10-03 13:24:00.000000-07', 1, None),
+            # 0
+            ('Collection', 'col10233', col10233, '1.1',
+                'Xilinx University Program: Professor Workshop',
+                '2004-06-24 08:12:24.875-05', 1, 1),
 
-            ('Module', 'm1', m1_uuid, '1.2', 'Name of module m1',
-                '2013-12-13 01:11:00.000000-07', 2, None),
+            # 1
+            ('Module', 'm12047', m12047, '1.1',
+                'Designing Using the PicoBlaze Microcontroller',
+                '2004-06-24 17:10:47.545195-05', 1, None),
+
+            # 2
+            ('Module', 'm12048', m12048, '1.1',
+                'Step 1: Generate Assembler Code for Pulse Width Controller',
+                '2004-06-24 17:12:03.076229-05', 1, None),
+
+            # 3
+            ('Module', 'm12049', m12049, '1.1',
+                'Step 2: Simulate Pulse Width Controller',
+                '2004-06-24 17:52:13.317586-05', 1, None),
+
+            # 4
+            ('Module', 'm12049', m12049, '1.2', 
+                'Step 2: Simulate Pulse Width Controller',
+                '2004-06-24 17:53:23.738305-05', 2, None),
+
+            # 5
+            ('Module', 'm12049', m12049, '1.3',
+                'Step 2: Simulate Pulse Width Controller',
+                '2004-06-24 17:55:37.534054-05', 3, None),
+
+            # 6
+            ('Module', 'm12050', m12050, '1.1',
+                'Step 3: Flexible Pulse Width Controller',
+                '2004-06-24 18:10:23.192922-05', 1, None),
+
+            # 7
+            ('Module', 'm12050', m12050, '1.2',
+                'Step 3: Flexible Pulse Width Controller',
+                '2004-07-01 15:40:28.71914-05', 2, None),
             )))
 
         self.create_collection_tree(cursor, (
             (None, module_idents[0]),
-            (module_idents[0], module_idents[1]),
-            (module_idents[0], module_idents[2]),
-            (module_idents[0], module_idents[3]),
+            (module_idents[0], 'subcollection'),
+            ('subcollection', module_idents[6]),
+            ('subcollection', module_idents[5]),
+            ('subcollection', module_idents[2]),
+            ('subcollection', module_idents[1]),
             ))
 
         self.call_target(cursor, module_idents[0])
 
-        # Although m1, m2 and m3 are published after c1, c1
+        # Although all the modules are published after col10233, col10233
         # should not get a minor update because they are in
-        # the c1 collection tree
+        # the col10233 collection tree
 
-        # Only one minor version should be created for m1 v1.2
+        # Only one minor version should be created for m12050 v1.2
         cursor.execute('SELECT COUNT(*) FROM modules')
         new_num_modules = cursor.fetchone()[0]
         self.assertEqual(old_num_modules + len(module_idents) + 1,
