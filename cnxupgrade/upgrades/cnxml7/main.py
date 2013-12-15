@@ -47,7 +47,7 @@ def main(db_connection, filename='index_auto_generated.cnxml'):
 
         # Grab cursory info about modules for iteration and logging.
         cursor.execute("SELECT moduleid, version, module_ident "
-                       "FROM latest_modules "
+                       "FROM modules "
                        "     NATURAL LEFT JOIN module_files AS mf "
                        "WHERE portal_type = 'Module' "
                        "      AND mf.filename = 'index.cnxml' "
