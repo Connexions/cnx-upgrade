@@ -160,7 +160,6 @@ def cli_command(**kwargs):
     id_select_query = kwargs['id_select_query']
     with psycopg2.connect(db_conn) as db_connection:
         with db_connection.cursor() as cursor:
-            cursor.execute("ALTER TABLE modules DISABLE TRIGGER module_published")
 
             cursor.execute(id_select_query)
             cols = cursor.fetchall()
@@ -171,7 +170,6 @@ def cli_command(**kwargs):
                 create_collection_minor_versions(cursor, module_ident)
                 if i % 10:
                     db_connection.commit()
-            cursor.execute("ALTER TABLE modules ENABLE TRIGGER module_published")
         db_connection.commit()
 
 def cli_loader(parser):

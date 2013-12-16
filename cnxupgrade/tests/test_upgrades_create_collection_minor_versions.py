@@ -48,7 +48,6 @@ class CollectionMigrationTestCase(unittest.TestCase):
     @db_connect
     def setUp(self, cursor):
         self.fixture.setUp()
-        cursor.execute('ALTER TABLE modules DISABLE TRIGGER module_published')
         cursor.execute('''INSERT INTO abstracts VALUES (1,
             'abstract') ''')
 
