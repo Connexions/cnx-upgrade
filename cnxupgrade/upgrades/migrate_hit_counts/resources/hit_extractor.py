@@ -15,6 +15,7 @@ moduleid, total hits, recent hits, publication date, today, update interval
 
 """
 import csv
+import pytz
 from datetime import datetime
 import calendar
 
@@ -25,13 +26,22 @@ def _to_timestamp(dt):
     """datetime.datetime to timestamp"""
     return calendar.timegm(dt.utctimetuple())
 
+def asdatetime(zdt):
+    """Return a standard libary datetime.datetime
+    """
+    tzinfo = pytz.timezone(zdt.localZone())
+    second = int(zdt._second)
+    microsec = 0  ##zdt.micros() % 1000000
+    dt = datetime(zdt._year, zdt._month, zdt._day, zdt._hour,
+                  zdt._minute, second, microsec, tzinfo)
+    return dt
 
 def main():
     tool = app.plone.portal_hitcount
     output = csv.writer(sys.stdout)
     end_date = _to_timestamp(datetime.today())
     for obj_id, hit in tool._hits.items():
-        start_date = _to_timestamp(hit.published.asdatetime())
+        start_date = _to_timestamp(asdatetime(hit.published))
         row = (obj_id, hit.total, hit.recent,
                start_date, end_date, INTERVAL,)
         output.writerow(row)
