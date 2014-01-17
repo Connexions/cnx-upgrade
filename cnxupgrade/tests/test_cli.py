@@ -206,3 +206,18 @@ class CommandLineInterfaceTestCase(unittest.TestCase):
             'db_conn_str': DB_CONNECTION_STRING,
             })
         self.assertEqual(result, 'run cnxupgrade.upgrades.remove_testdraft')
+
+    def test_migrate_ga(self):
+        # Mock migrate_ga.cli_command
+        migrate_ga = self.mock('migrate_ga')
+
+        # Invoke cnx-upgrade migrate_ga
+        result = self.call_target(['migrate_ga'])
+
+        # Assert migrate_ga was called
+        self.assertEqual(self.call_count, 1)
+        self.assertEqual(self.kwargs, {
+            'cmmd': migrate_ga,
+            'db_conn_str': DB_CONNECTION_STRING,
+            })
+        self.assertEqual(result, 'run cnxupgrade.upgrades.migrate_ga')
