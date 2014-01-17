@@ -33,6 +33,7 @@ UPGRADES = (
     'cnxml7',
     'create_collection_minor_versions',
     'remove_testdraft',
+    'migrate_ga',
     )
 # TODO Look this up via setuptools entry-point so that it only needs to be
 #      changed at the distribution level on say release or tag.
