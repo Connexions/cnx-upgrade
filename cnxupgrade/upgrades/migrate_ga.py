@@ -17,7 +17,6 @@ __all__ = ('cli_loader',)
 SQL_GET_COLLECTIONS = """\
 SELECT moduleid
 FROM latest_modules
-WHERE portal_type = 'Collection'
 """
 
 SQL_INSERT_GOOGLE_ANALYTICS_CODE = """\
