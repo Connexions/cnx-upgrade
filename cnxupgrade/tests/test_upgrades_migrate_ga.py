@@ -34,11 +34,9 @@ INSERT INTO modules VALUES (2, 'Collection', 'col11594', 'a0e7e11c-3a81-4b57-995
 
         # Mock response from plone site
         # responses should be assigned to self.responses by individual tests
-        self.responses = ['']
-        self.response_id = -1
+        self.responses = {}
         def urlopen(url):
-            self.response_id += 1
-            return StringIO(unicode(self.responses[self.response_id]))
+            return StringIO(unicode(self.responses[url]))
         original_urlopen = urllib2.urlopen
         urllib2.urlopen = urlopen
         self.addCleanup(setattr, urllib2, 'urlopen', original_urlopen)
@@ -57,7 +55,9 @@ INSERT INTO modules VALUES (2, 'Collection', 'col11594', 'a0e7e11c-3a81-4b57-995
         return cursor.fetchone()[0]
 
     def test(self):
-        self.responses = ['', 'UA-30227798-1']
+        self.responses = {
+             'http://cnx.org/content/col11594/latest/getGoogleAnalyticsTrackingCode':'', 
+             'http://cnx.org/content/col11406/latest/getGoogleAnalyticsTrackingCode':'UA-30227798-1'}
         self.call_target()
         self.assertEqual(self.get_ga_by_module_id('col11406'), 'UA-30227798-1')
         self.assertEqual(self.get_ga_by_module_id('col11594'), None)
