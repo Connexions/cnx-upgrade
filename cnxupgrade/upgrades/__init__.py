@@ -35,6 +35,7 @@ UPGRADES = (
     'remove_testdraft',
     'migrate_ga',
     'dump_upgrade',
+    'v2',
     )
 # TODO Look this up via setuptools entry-point so that it only needs to be
 #      changed at the distribution level on say release or tag.
