@@ -38,6 +38,8 @@ WHERE portal_type = 'Collection';
 -- Drop the moduleid default from the modules table.
 ALTER TABLE modules ALTER COLUMN "moduleid" DROP DEFAULT;
 ALTER TABLE modules ALTER COLUMN "version" DROP DEFAULT;
+ALTER TABLE modules ALTER COLUMN "uuid" DROP NOT NULL;
+ALTER TABLE modules ALTER COLUMN "uuid" DROP DEFAULT;
 -- Put the triggers in place.
 CREATE OR REPLACE FUNCTION assign_moduleid_default ()
   RETURNS TRIGGER

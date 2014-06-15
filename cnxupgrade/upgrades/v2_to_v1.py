@@ -25,6 +25,8 @@ DROP SEQUENCE "collectionid_seq";
 -- Add defaults to the modules table for moduleid and version.
 ALTER TABLE modules ALTER COLUMN "moduleid" SET DEFAULT 'm' || nextval('"moduleid_seq"');
 ALTER TABLE modules ALTER COLUMN "version" SET DEFAULT '1.1';
+ALTER TABLE modules ALTER COLUMN "uuid" SET NOT NULL;
+ALTER TABLE modules ALTER COLUMN "uuid" SET DEFAULT uuid_generate_v4();
 -- Remove the the triggers.
 DROP TRIGGER act_10_module_uuid_default ON modules;
 DROP TRIGGER act_20_module_acl_upsert ON modules;
