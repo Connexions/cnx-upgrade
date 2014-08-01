@@ -37,3 +37,5 @@ provide a means to run it in stages: at minimum, report progress.
 
 Note that the top-level cnx-upgrade command defers to individual upgrade steps
 for commandline processing, so additional step specific parameters can be added.
+
+[![Build Status](https://travis-ci.org/Connexions/cnx-upgrade.svg?branch=master)](https://travis-ci.org/Connexions/cnx-upgrade)
