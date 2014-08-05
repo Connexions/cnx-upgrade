@@ -130,6 +130,9 @@ class CollectionMigrationTestCase(unittest.TestCase):
         cursor.execute('SELECT COUNT(*) FROM modules')
         old_num_modules = cursor.fetchone()[0]
 
+        # Disable the triggers that initialize a default version on entry.
+        cursor.execute("ALTER TABLE modules DISABLE TRIGGER ALL;")
+
         m1_uuid = str(uuid.uuid4())
         m2_uuid = str(uuid.uuid4())
         c1_uuid = str(uuid.uuid4())
@@ -183,6 +186,9 @@ class CollectionMigrationTestCase(unittest.TestCase):
         """
         cursor.execute('SELECT COUNT(*) FROM modules')
         old_num_modules = cursor.fetchone()[0]
+
+        # Disable the triggers that initialize a default version on entry.
+        cursor.execute("ALTER TABLE modules DISABLE TRIGGER ALL;")
 
         m1_uuid = str(uuid.uuid4())
         m2_uuid = str(uuid.uuid4())
@@ -307,6 +313,9 @@ class CollectionMigrationTestCase(unittest.TestCase):
         """
         cursor.execute('SELECT COUNT(*) FROM modules')
         old_num_modules = cursor.fetchone()[0]
+
+        # Disable the triggers that initialize a default version on entry.
+        cursor.execute("ALTER TABLE modules DISABLE TRIGGER ALL;")
 
         m1_uuid = str(uuid.uuid4())
         m2_uuid = str(uuid.uuid4())
