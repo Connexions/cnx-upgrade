@@ -17,6 +17,9 @@ before_install:
   # install cnx-query-grammar
   - git clone https://github.com/Connexions/cnx-query-grammar.git
   - cd cnx-query-grammar && sudo /usr/bin/python setup.py install && cd ..
+  # install cnx-epub
+  - git clone https://github.com/Connexions/cnx-epub.git
+  - cd cnx-epub && sudo /usr/bin/python setup.py install && cd ..
   # install the bug-fixes branch of plpydbapi
   - git clone -b bug-fixes https://github.com/Connexions/plpydbapi.git
   - cd plpydbapi && sudo /usr/bin/python setup.py install && cd ..
