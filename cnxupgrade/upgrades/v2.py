@@ -57,7 +57,7 @@ CREATE OR REPLACE FUNCTION assign_uuid_default ()
   RETURNS TRIGGER
 AS $$
   from cnxarchive.database import assign_uuid_default_trigger
-  return assign_uuid_default_trigger(plpy, TD)
+  return assign_document_controls_default_trigger(plpy, TD)
 $$ LANGUAGE plpythonu;
 CREATE OR REPLACE FUNCTION upsert_document_acl ()
   RETURNS TRIGGER
@@ -81,11 +81,13 @@ CREATE TRIGGER module_version_default
 
 -- Add in the new tables for document_controls and document_acl.
 CREATE TABLE "document_controls" (
-  -- An association table that is a controlled set of UUID identifiers
-  -- for document/module input. This prevents collisions between existing documents,
-  -- and publication pending documents, while still providing the publishing system
-  -- a means of assigning an identifier where the documents will eventually live.
-  "uuid" UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+       -- An association table that is a controlled set of UUID identifiers
+       -- for document/module input. This prevents collisions between existing documents,
+       -- and publication pending documents, while still providing the publishing system
+       -- a means of assigning an identifier where the documents will eventually live.
+       -- The 'licenseid' starts as NULL, but if connected to a 'modules' or 'lastest_modules' record MUST be populated, this is enforeced by a trigger.
+       "uuid" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+       "licenseid" INTEGER DEFAULT NULL
 );
 CREATE TYPE permission_type AS ENUM (
   'publish'
@@ -100,7 +102,8 @@ CREATE TABLE "document_acl" (
 
 
 -- Populate the new tables from the modules table.
-INSERT INTO document_controls (uuid) select uuid from modules group by uuid;
+INSERT INTO document_controls (uuid, licenseid)
+  SELECT uuid, licenseid FROM latest_modules GROUP BY uuid;
 INSERT INTO document_acl (uuid, user_id, permission)
   SELECT uuid, unnest(authors), 'publish'::permission_type FROM modules
   UNION
