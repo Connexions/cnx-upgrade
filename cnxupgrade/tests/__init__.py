@@ -5,6 +5,7 @@
 # Public License version 3 (AGPLv3).
 # See LICENCE.txt for details.
 # ###
+from __future__ import print_function
 import os
 import sys
 
@@ -25,13 +26,12 @@ except:
     try:
         arg_pos = sys.argv.index(_DB_CONNECTION_STRING_CLI_OPT_NAME)
     except ValueError:
-        raise RuntimeError("MUST supply a means to connect to the database, "
-                           "either via the environment variable '{}' or the "
-                           "command-line option '{}'." \
-                               .format(_DB_CONNECTION_STRING_ENV_VAR_NAME,
-                                       _DB_CONNECTION_STRING_CLI_OPT_NAME)
-                           )
-    DB_CONNECTION_STRING = sys.argv[arg_pos+1]
+        # Use default...
+        print("Using default database connection string.",
+              file=sys.stderr)
+        DB_CONNECTION_STRING = "dbname=cnxarchive-testing user=cnxarchive password=cnxarchive"
+    else:
+        DB_CONNECTION_STRING = sys.argv[arg_pos+1]
 TESTING_DATA_DIRECTORY = os.path.join(here, 'data')
 
 
