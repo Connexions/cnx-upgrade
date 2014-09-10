@@ -42,6 +42,12 @@ DROP FUNCTION upsert_document_acl ();
 DROP TABLE "document_acl";
 DROP TYPE permission_type;
 DROP TABLE "document_controls";
+
+
+-- Drop the new column for files
+ALTER TABLE files DROP COLUMN sha1;
+DROP TRIGGER update_files_sha1 ON files;
+DROP FUNCTION IF EXISTS update_sha1();
 """
 
 
