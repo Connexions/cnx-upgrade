@@ -1,7 +1,7 @@
 {"table": "modules",
  "primarykeys": ["module_ident"],
  "predepends": ["users-785affea-2b64-4600-9ffb-19cafe626d2a.json", "users-ea26d03f-a51d-45c9-9b46-27ce73293946.json",
-                "users-6ad11ee2-186c-46aa-a9ef-6a53dab6b284.json", "abstracts-4.json"
+                "users-6ad11ee2-186c-46aa-a9ef-6a53dab6b284.json", "abstracts-4.json", "document-controls-199.json"
                ],
  "record": {"module_ident": 199,
             "uuid": "af3d325a-ffd8-42ab-8e18-1ee31e2bae4a",

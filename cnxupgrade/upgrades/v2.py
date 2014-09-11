@@ -6,6 +6,7 @@
 # See LICENCE.txt for details.
 # ###
 """Upgrades the schema form version 1 to version 2."""
+import hashlib
 import os
 import psycopg2
 from cnxarchive.database import DB_SCHEMA_FILES, _read_sql_file
@@ -108,6 +109,27 @@ INSERT INTO document_acl (uuid, user_id, permission)
   SELECT uuid, unnest(authors), 'publish'::permission_type FROM modules
   UNION
   SELECT uuid, unnest(maintainers), 'publish'::permission_type FROM modules;
+
+-- Add sha1 column to files table
+ALTER TABLE files ADD COLUMN sha1 text;
+CREATE INDEX files_sha1_idx ON files (sha1);
+
+CREATE OR REPLACE FUNCTION update_sha1()
+  RETURNS TRIGGER
+AS $$
+  import hashlib
+
+  TD['new']['sha1'] = hashlib.new('sha1', TD['new']['file']).hexdigest()
+  return 'MODIFY'
+$$ LANGUAGE plpythonu;
+
+CREATE TRIGGER update_files_sha1
+  BEFORE INSERT OR UPDATE ON files
+  FOR EACH ROW
+  EXECUTE PROCEDURE update_sha1();
+
+-- Populate sha1 in files table
+UPDATE files SET fileid = fileid;
 """
 
 
