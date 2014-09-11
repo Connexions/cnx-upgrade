@@ -34,6 +34,7 @@ class MainTestCase(unittest.TestCase):
     @db_connect
     def setup_test_data(self, cursor, moduleid, version):
         cursor.execute("INSERT INTO abstracts VALUES (1, '', '');")
+        cursor.execute("INSERT INTO document_controls (uuid) VALUES ('209deb1f-1a46-4369-9e0d-18674cf58a3e')")
         cursor.execute('''
 INSERT INTO modules VALUES (1, 'Module', %s, '209deb1f-1a46-4369-9e0d-18674cf58a3e', %s, 'Preface to College Physics', '2013-07-31 14:07:20.542211-05', '2013-07-31 14:07:20.542211-05', 1, 11, '', '', '', NULL, NULL, 'en', '{e5a07af6-09b9-4b74-aa7a-b7510bee90b8}', '{e5a07af6-09b9-4b74-aa7a-b7510bee90b8, 1df3bab1-1dc7-4017-9b3a-960a87e706b1}', '{9366c786-e3c8-4960-83d4-aec1269ac5e5}', NULL, NULL, NULL, 7, NULL);
 INSERT INTO files (file) VALUES (%s);
