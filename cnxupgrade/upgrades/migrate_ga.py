@@ -25,7 +25,7 @@ SET google_analytics = %(google_analytics)s
 WHERE moduleid = %(moduleid)s
 """
 
-LEGACY_GA_URL = 'http://cnx.org/content/{colid}/latest/getGoogleAnalyticsTrackingCode'
+LEGACY_GA_URL = 'http://legacy.cnx.org/content/{colid}/latest/getGoogleAnalyticsTrackingCode'
 
 def get_ga_from_legacy(moduleid):
     return urllib2.urlopen(LEGACY_GA_URL.format(
