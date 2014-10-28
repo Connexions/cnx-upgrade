@@ -13,6 +13,8 @@ connecting to the archive database and the user configured in
 the osc-accounts connection string. Any additional configurations will
 need to be added manually.
 """
+import psycopg2
+
 
 __all__ = ('cli_loader', 'do_upgrade',)
 
@@ -25,6 +27,11 @@ def do_upgrade(db_connection_string, oscaccounts_connection_string):
         config.CONNECTION_STRING: db_connection_string,
         config.ACCOUNTS_CONNECTION_STRING: oscaccounts_connection_string,
         }
+
+    # Remove the existing users view.
+    with psycopg2.connect(db_connection_string) as db_connection:
+        with db_connection.cursor() as cursor:
+            cursor.execute("""DROP VIEW IF EXISTS users""")
 
     # Call the function that initializes the foreign data wrapper
     # SQL statements.
