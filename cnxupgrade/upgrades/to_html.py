@@ -9,7 +9,7 @@
 
 import psycopg2
 
-from cnxarchive.to_html import *
+from cnxarchive.transforms.producers import produce_html_for_module, produce_html_for_abstract
 
 
 __all__ = ('cli_loader',)
@@ -45,8 +45,8 @@ def produce_html_for_modules(db_connection,
         with db_connection.cursor() as cursor:
             try:
                 message = produce_html_for_module(db_connection, cursor, ident,
-                                                  source_filename,
-                                                  overwrite_html)
+                                                  source_filename, 
+                                                  overwrite_html=overwrite_html)
             except Exception as exc:
                 message = exc.message
         yield (ident, message)
